@@ -14,5 +14,10 @@ https://www.bountysource.com/issues/54232742-custom-key-mappings
 https://qiita.com/canonrock16/items/d166c93087a4aafd2db4
 
 
+##### recommended jupyter lab extension ##### 
+- @jupyterlab/toc
+- @jupyterlab/git
+- lckr/jupyterlab_variableinspector
+
 
 
