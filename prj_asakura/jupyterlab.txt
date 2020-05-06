@@ -13,11 +13,14 @@ https://www.bountysource.com/issues/54232742-custom-key-mappings
 # JupyterLabのおすすめ拡張機能8選
 https://qiita.com/canonrock16/items/d166c93087a4aafd2db4
 
+# The Top 45 Jupyterlab Extension Open Source Projects
+https://awesomeopensource.com/projects/jupyterlab-extension
 
 ##### recommended jupyter lab extension ##### 
 - @jupyterlab/toc
 - @jupyterlab/git
 - lckr/jupyterlab_variableinspector
+- jupyterlab_vim
 
 
 
