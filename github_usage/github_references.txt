@@ -1,0 +1,25 @@
+# GitHub Flow
+https://gist.github.com/Gab-km/3705015
+
+# チーム開発においてGit初心者が踏みがちな地雷まとめ
+https://techracho.bpsinc.jp/morimorihoge/2014_04_25/16856
+
+# Githubのプロジェクト(オリジナル・リポジトリ)を
+# 複数人で共有する(Collaborators権限)
+https://git-manual.net/github-collaborators-right/
+
+# github, ドキュメント , 基本的な書き方とフォーマットの構文
+https://help.github.com/ja/github/writing-on-github/basic-writing-and-formatting-syntax
+
+
+# GitHubを中心とした開発プロセス ドキュメント管理
+https://qiita.com/suzuki-hoge/items/1d6022cca177e2d96bb5
+
+# Markdown形式のファイルをターミナル上でプレビューする方法
+http://toshikaz55.github.io/blog/blog/2013/04/04/how-to-preview-markdown-on-terminal/
+
+# Markdown: Syntax, written by john gruber. 
+https://daringfireball.net/projects/markdown/syntax#block
+
+#
+

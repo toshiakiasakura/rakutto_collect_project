@@ -1,0 +1,40 @@
+This file is a memo of to do list for grasping usage of git hub. 
+
+### symbolic ### 
+# : task 
+- : give up 
++ : finish 
+
+#################
+
+
+### to do list ### 
+
+# git and gitHub is totally different thing.  
+clarify the difference. ( using graph? or command ? ) 
+
+# how to compare jupyter notebook files easily. 
+(jupyter notebook automatically create json object, 
+so that many humble codes appears.
+Ideally, if code chuncks are only be extracted and 
+compare difference, it is good thing.) 
+
+# how to share git system without github.
+(suppose use git individually) 
+ex. start git in asakura's computer. 
+and share that directory with others. 
+then how to integrate different version of git. 
+
+
+# list up useful git command, 
+and if some commands are frequently used, 
+register them as alias (both git alias and bash alias is ok. ) 
+
+# ticket function should exist, find out that function. 
+use other services, ex. reddit ?. 
+
+
+
+
+
+
