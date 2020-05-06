@@ -1,0 +1,7 @@
+######### pyinstaller record
+
+# this code works although there are several errors when processing
+pyinstaller 2_dist_GUI.py
+
+# this also works 
+py installer --onefile --windowed 2_dist_GUI.py

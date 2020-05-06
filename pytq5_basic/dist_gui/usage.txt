@@ -1,0 +1,51 @@
+###### Introduction of GUI_dist.py ##### 
+
+# This code is written by Toshiaki Asakura, 13 Apr 2018 
+# The content is to simulate various distributions in GUI
+# to capture shape and characteristics of each distributions, 
+# There are summary of distributions, and figure of distribution which you can edit, 
+
+
+##### Preparation #####
+
+# this code is written by pythom 
+# to use this code, you will need to install some modules in requreiments.txt
+# typing the following code enables you to install packages
+pip install -r requirements.txt 
+
+
+##### usage #####
+# code can run 
+python GUI_dist_ver1.py 
+
+# leftest window : choose distribution 
+# central window : Distribution is displayed, in the rigt side, summary of distribution is shown
+
+# bottom window : Control Widget , you can edit distribution parameters
+                    in the right side, summary values of distribution is shown
+# Button Explanation :
+    ComboBox(leftest side : choose distribution type ( ex. probability density distribution ) 
+    Pause Button : pause updating figures, 
+    Update Button : update figure with current values
+                    this button is prepared to use when Pause Button is pushed 
+    Clear Button : clear figure 
+
+##### Caution ##### 
+# When ComboBox is checked, the figure is not updated. please push Clear Button 
+
+
+##### Customization ##### 
+# if you want to add additional distributions,
+    first, you should see FileListChanged function
+    add init[Dist]Control and init[Dist]Info, 
+    and edit AddDist function, 
+    you can add distribution to this GUI program
+
+
+Thank you for reading this file 
+
+
+
+
+
+
