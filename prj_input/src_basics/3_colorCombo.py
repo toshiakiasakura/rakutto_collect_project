@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QColor
-
+import types 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -45,12 +45,28 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.textEdit)
 
         self.comboBoxs = []
+        self.comboDic = {}
+        self.comboIndex = []
         for i in range(5):
             self.comboMacro = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
             self.comboMacro.setObjectName("comboBox")
             self.comboMacro.addItems( ["A","B","C"] ) 
+
+            pal = self.comboMacro.palette()
+            pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,255) )
+            self.comboMacro.setPalette(pal)
+            
+            def changeBack(self,s):
+                pal = self.palette()
+                pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,0) )
+                self.setPalette(pal)
+            self.comboMacro.changeBack = types.MethodType(changeBack,self.comboMacro)
+
+            self.comboMacro.activated[str].connect(self.comboMacro.changeBack)
             self.verticalLayout.addWidget(self.comboMacro)
             self.comboBoxs.append(self.comboMacro)
+
+            
         self.comboBoxs[0].setVisible(False)
         
         self.pushButton = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
@@ -84,10 +100,15 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "PushButton"))
         self.label_4.setText(_translate("MainWindow", "TextLabel"))
 
+    def changeBackColor(self,combo):
+        pal = combo.palette()
+        pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,0) )
+        combo.setPalette(pal)
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyle("fusion")
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
