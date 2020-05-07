@@ -45,8 +45,6 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.textEdit)
 
         self.comboBoxs = []
-        self.comboDic = {}
-        self.comboIndex = []
         for i in range(5):
             self.comboMacro = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
             self.comboMacro.setObjectName("comboBox")
@@ -100,10 +98,6 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "PushButton"))
         self.label_4.setText(_translate("MainWindow", "TextLabel"))
 
-    def changeBackColor(self,combo):
-        pal = combo.palette()
-        pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,0) )
-        combo.setPalette(pal)
 
 if __name__ == "__main__":
     import sys
