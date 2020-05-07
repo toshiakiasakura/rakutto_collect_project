@@ -1,0 +1,25 @@
+##### pyqt5 references ##### 
+
+# PyQt5 Tutorial - How to Use QtDesigner - techwithtim.net
+https://techwithtim.net/tutorials/pyqt5-tutorial/how-to-use-qtdesigner/
+
+# Plotting with PyQtGraph
+https://www.learnpyqt.com/courses/graphics-plotting/plotting-pyqtgraph/
+
+# Python and PyQt: Building a GUI Desktop Calculator
+https://realpython.com/python-pyqt-gui-calculator/
+
+# Getting Started with PyQt 
+https://wiki.python.org/moin/PyQt/Tutorials
+
+# Converting .ui to .py with Python 3.6 on PyQt5 [closed]
+https://stackoverflow.com/questions/43028904/converting-ui-to-py-with-python-3-6-on-pyqt5
+
+# pyQt4のチェックボックスを非表示にしたい。
+https://teratail.com/questions/93344
+
+# Displaying tabular data in Qt5 ModelViews
+https://www.learnpyqt.com/courses/model-views/qtableview-modelviews-numpy-pandas/
+
+# PyQt5 vs PySide2: What's the difference between the two Python Qt libraries?
+https://www.learnpyqt.com/blog/pyqt5-vs-pyside2/
