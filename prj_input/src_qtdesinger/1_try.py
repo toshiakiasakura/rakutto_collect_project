@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'try.ui'
+# Form implementation generated from reading ui file '1_try.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.2
 #
@@ -42,8 +42,6 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.textEdit)
         self.comboBox = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
         self.comboBox.setObjectName("comboBox")
-        self.comboBox.setVisible(False)
-
         self.verticalLayout.addWidget(self.comboBox)
         self.pushButton = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
         self.pushButton.setObjectName("pushButton")

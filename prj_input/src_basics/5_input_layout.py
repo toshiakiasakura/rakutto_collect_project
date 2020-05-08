@@ -11,19 +11,34 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_scrollArea(object):
+
+
     def setupUi(self, scrollArea):
         scrollArea.setObjectName("scrollArea")
-        scrollArea.resize(853, 947)
+        mainWidth = 1000
+        mainHeight = 600
+        scrollArea.resize(mainWidth, mainHeight)
         scrollArea.setWidgetResizable(True)
+
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 851, 945))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+
         self.scrollVerticalLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.scrollVerticalLayout.setObjectName("scrollVerticalLayout")
         self.verticalLayoutScroll = QtWidgets.QVBoxLayout()
         self.verticalLayoutScroll.setObjectName("verticalLayoutScroll")
+
+        self.setupGridLayoutTop()
+        self.setupScrollMiddle()
+        self.setupGridLayoutBottom()
+        self.retranslateUi(scrollArea)
+
+        QtCore.QMetaObject.connectSlotsByName(scrollArea)
+
+    def setupGridLayoutTop(self):
         self.gridLayoutTop = QtWidgets.QGridLayout()
         self.gridLayoutTop.setObjectName("gridLayoutTop")
+
         self.comboRef1 = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
         self.comboRef1.setObjectName("comboRef1")
         self.gridLayoutTop.addWidget(self.comboRef1, 0, 2, 1, 1)
@@ -64,12 +79,14 @@ class Ui_scrollArea(object):
         self.pushSearch = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
         self.pushSearch.setObjectName("pushSearch")
         self.gridLayoutTop.addWidget(self.pushSearch, 1, 4, 1, 2)
+
         self.verticalLayoutScroll.addLayout(self.gridLayoutTop)
+
+    def setupScrollMiddle(self):
         self.scrollMiddle = QtWidgets.QScrollArea(self.scrollAreaWidgetContents)
         self.scrollMiddle.setWidgetResizable(True)
         self.scrollMiddle.setObjectName("scrollMiddle")
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 823, 737))
         self.scrollAreaWidgetContents_2.setObjectName("scrollAreaWidgetContents_2")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -88,7 +105,10 @@ class Ui_scrollArea(object):
         self.horizontalLayoutMacro.addItem(spacerItem1)
         self.verticalLayout.addLayout(self.horizontalLayoutMacro)
         self.scrollMiddle.setWidget(self.scrollAreaWidgetContents_2)
+
         self.verticalLayoutScroll.addWidget(self.scrollMiddle)
+
+    def setupGridLayoutBottom(self):
         self.gridLayoutBottom = QtWidgets.QGridLayout()
         self.gridLayoutBottom.setObjectName("gridLayoutBottom")
         self.lineSh2 = QtWidgets.QLineEdit(self.scrollAreaWidgetContents)
@@ -156,9 +176,6 @@ class Ui_scrollArea(object):
         self.verticalLayoutScroll.addLayout(self.gridLayoutBottom)
         self.scrollVerticalLayout.addLayout(self.verticalLayoutScroll)
         scrollArea.setWidget(self.scrollAreaWidgetContents)
-
-        self.retranslateUi(scrollArea)
-        QtCore.QMetaObject.connectSlotsByName(scrollArea)
 
     def retranslateUi(self, scrollArea):
         _translate = QtCore.QCoreApplication.translate
