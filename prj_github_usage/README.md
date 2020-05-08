@@ -12,13 +12,6 @@ created by *Linus Torvalds* (also the founder of Linux).
 In this document, git architecture and git usage is   
 simply explaind. 
 
-## Contents 
-
-- the way of start up git. 
-- grasp the basic git architecture. 
-- make difference between git and github.
-
-
 ## The initial bash setting
 
 Before starting git, it is good for you 
@@ -58,6 +51,280 @@ git init
 git add .
 git commit 
 ```
+
+
+# Check Commits.  
+See the history of commits.  
+```
+git log
+``` 
+
+See the detail record of a commit.  
+```
+git show <SHA1 hash>
+```
+
+See the simple record of commits according to each branch.  
+```
+git show-branch --more=10
+```
+
+
+# Kinds of Git Objects. 
+
+- blob   
+Stands for _binary large object_.  
+Git does not use file name, but use SHA1 hash generated  
+with binary code of each file.  
+
+- tree  
+Express one directory information.  
+
+- commit  
+Metadata for each change to a repository.  
+
+- tag  
+Alias for commit.  
+
+# Git Architecture. 
+
+<img src="pic/object_model1.png" width="150px">  
+<img src="pic/object_model2.png" width="150px">  
+<img src="pic/object_model3.png" width="150px">  
+
+
+# Grouping of Files within Git.  
+
+- tracked.  
+Files which are already in repository, or are indexed.  
+
+- ignored.  
+Files which explicitly declared as ignore.  
+
+- untracked.   
+Files belonging to neither of tracked or ignored.  
+
+## The way of checking tracked, ignored and untracked.  
+
+*Example case.* 
+(start with clean status, which means all files are tracked or ignored.)  
+This example creates tracked, ignored and untracked file.  
+(and if you already have .gitignore file, you can also see changes files,  
+which are also one of the untracked files. )   
+```
+echo "dirty file" > dirty1.txt
+echo "dirty file" > dirty2.txt 
+echo " dirty file" > dirty3.txt 
+echo dirty3.txt > .gitignore  
+git add dirty1.txt 
+
+git status
+```
+
+- Note.   
+If .gitignore is not sharing with other branches,  
+This makes problem if you checkout another branch.  
+That file remains and in another branch, treated as a untracked file.  
+
+## git add options.  
+See the picture below.  
+`git add .` adds only files under a current directory.  
+<img src="pic/git_add_difference.png" width="150px">  
+
+
+
+# Commit Names.  
+
+- reference (ref)  
+SHA1 hash ID pointing at the object within a object strage.  
+
+- symbolic reference (symref)  
+Indirect reference name.  
+
+## default symbolic reference  
+
+- HEAD   
+Symref for the newest commit in the current branch.  
+
+- ORIG\_HEAD   
+Previous HEAD.  
+
+- FETCH\_HEAD  
+If you fetch a remote repository, the head commit of the branch is   
+registered in the FETCH\_HEAD   
+
+- MERGE\_HEAD   
+A commit that will be merged to HEAD.   
+
+## Relative Commit Name.  
+Examples.  
+
+- master^ = master~  
+The second newest commit in the master branch.  
+
+- master~2    
+The third newest commit in the master branch.  
+
+## Summary Picture of commit names.  
+
+<img src="pic/git_refnames.png" width="150px">  
+
+## History of Commits.  
+Useful options.   
+```
+git log --pretty[=oneline|short|full] --abbrev-commit --stat` 
+```
+
+_pretty_ means amount of output.  
+_abbrev_ means abbreviation of commit ID.  
+_stat_ means list edited files and summarize edited lines for each file.  
+
+*Examples.*  
+```
+git log HEAD~10.. --pretty=oneline --abbrev-commit  
+(same as git log HEAD~10..HEAD --pretty=oneline --abbrev-commit)
+```
+
+```
+git log HEAD~2.. --stat
+```
+
+cf.   
+```
+git show HEAD~2..
+```
+
+```
+git log -1 -p HEAD~3
+(same as git log -1 -p master HEAD^3
+```
+
+_-p_ means difference, and -1 is # of output. 
+
+
+## Visualize Commit Graph.  
+1. `gitk`  
+The graph exists in the left top of the window.  
+
+2. git log with simple options  
+```
+git log --graph --pretty=oneline --abbrev-commit 
+```
+
+3. git log with complicated options  
+
+```
+git log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+```
+or   
+```
+git log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+```
+
+from this post. https://stackoverflow.com/questions/1057564/pretty-git-branch-graphs  
+
+etc...  
+-gitg  
+-GitGraph.js (https://qiita.com/uzuki\_aoba/items/76e59f65cb50ef020e3c)  
+-gitdags  
+
+# git diff Command.  
+
+- `git diff`  
+Show difference between working directory and index.  
+It means telling me differences to be indexed.  
+
+- `git diff _commit_`  
+Show difference between working directory and commit.  
+Frequent usage may be `git diff HEAD`.  
+
+- `git diff --cached _commit_`  
+Show difference between index and commit.  
+Frequent usage may be `git diff --cached HEAD` or `git diff --cached`.  
+
+
+
+# Merge 
+git's main troublesome things will be "merge". 
+Then, this chapter, we will explore how to solve conflicts elegantly. 
+
+## Make conflicts. 
+```
+git init 
+git echo "hello world" > text.txt
+git add .
+git commit 
+
+git branch test 
+
+git echo "dirty line" >> text.txt 
+git add .
+git commit 
+
+git checkout test 
+git echo "hello2 world" >> text.txt 
+git add .
+git commit 
+
+git merge master 
+```
+
+##  Find Out Conlicted Files. 
+
+`git status`  or `git ls-files -u` is good.  
+
+Also if you want to find out differences,  
+
+```
+git diff  
+git diff MERGE\_HEAD  
+git diff --stat
+```
+ 
+are options.   
+
+If you want to find out commits that cause the conflict, use the code.  
+```
+git log --merge --left-right -p  
+git log --merge --left-right -p <filename>
+```
+Show the commits that cause the conflict.  
+
+*Q. if you want to adopt whole changes of one branch, how?*
+Ans. 
+If you want to adopt branch which you are now checking out, use --ours,
+els use --theirs.
+
+This code is for each file. 
+```
+git checkout --[ours|theirs] <filename>
+```
+This code should be used after reset merge, 
+```
+git merge -X[ours|theirs] <branchname>
+```
+
+*Q. if you want to cancel merge, how?*
+Ans. 
+```
+git reset --hard HEAD
+```
+After you merge, and want to reset merge, 
+```
+git reset --hard ORIG_HEAD
+```
+
+Be careful, if you start merge in the dirty directory, 
+your untracked files are lost completely. 
+
+# Pick up commit from the history. 
+
+`git cherry-pick` is recommit to the branch. 
+`git revert` is reverse commit to the branch.
+`git revert` can be used for cancel the commit. 
+
+
+
 
 
 
@@ -115,11 +382,22 @@ Then you can update origin repository.
 
 
 
+# make test environment.  
 
+Delete files other than ones of which prefix is "." .  
+``` 
+ls | xargs rm -r
+```
 
-## [test] display picture 
-![sample](pic/test_pic.png)    
-<img src="pic/test_pic.png" width="150px"> 
+Make test files.  
+```
+echo "hello world" >> hoge1.txt
+echo "my name" >> hoge2.txt 
+```
+
+- Linuxで特定のファイル、ディレクトリ以外を削除するコマンド  
+https://ameblo.jp/pori-memo/entry-12063386035.html  
+
 
 
 
