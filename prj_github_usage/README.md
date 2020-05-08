@@ -88,9 +88,9 @@ Alias for commit.
 
 # Git Architecture. 
 
-<img src="pic/object_model1.png" width="150px">  
-<img src="pic/object_model2.png" width="150px">  
-<img src="pic/object_model3.png" width="150px">  
+<img src="pic/object_model1.png" width="600px">  
+<img src="pic/object_model2.png" width="600px">  
+<img src="pic/object_model3.png" width="600px">  
 
 
 # Grouping of Files within Git.  
@@ -129,7 +129,7 @@ That file remains and in another branch, treated as a untracked file.
 ## git add options.  
 See the picture below.  
 `git add .` adds only files under a current directory.  
-<img src="pic/git_add_difference.png" width="150px">  
+<img src="pic/git_add_difference.png" width="600px">  
 
 
 
