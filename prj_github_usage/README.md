@@ -167,7 +167,7 @@ The third newest commit in the master branch.
 
 ## Summary Picture of commit names.  
 
-<img src="pic/git_refnames.png" width="150px">  
+<img src="pic/git_refnames.png" width="600px">  
 
 ## History of Commits.  
 Useful options.   
