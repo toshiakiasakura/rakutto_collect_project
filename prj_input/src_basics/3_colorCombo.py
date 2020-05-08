@@ -45,7 +45,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.textEdit)
 
         self.comboBoxs = []
-        for i in range(5):
+        for i in range(50):
             self.comboMacro = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
             self.comboMacro.setObjectName("comboBox")
             self.comboMacro.addItems( ["A","B","C"] ) 
