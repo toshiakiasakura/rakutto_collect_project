@@ -329,9 +329,9 @@ your untracked files are lost completely.
 
 
 
-## Merge remote repository 
+# Merge remote repository 
 
-### routine work.
+## Routine Work.
 
 If you share work in remote repository, 
 it is simplest (maybe not best) wasy to update your working.
@@ -347,7 +347,7 @@ git push origin master
 ```
 
 
-### Case 1. 
+## Case 1. 
 You clone origin repository at the time of B.    
 You write some program and commit twice ( X and Y ).  
 Also, origin repository is edited by some other person ( C and D).    
@@ -375,14 +375,36 @@ type the code below.
 ```
 git push origin master
 ```
-Then you can update origin repository. 
+Then you can update origin repository.  
+
+
+# GitHub Flow.  
+This is one example of usage of github.  
+
+- Anything in the master branch is deployable
+- To work on something new, create a descriptively named branch off of master (ie: new-oauth2-scopes)
+- Commit to that branch locally and regularly push your work to the same named branch on the server
+- When you need feedback or help, or you think the branch is ready for merging, open a pull request
+- After someone else has reviewed and signed off on the feature, you can merge it into master
+- Once it is merged and pushed to ‘master’, you can and should deploy immediately
+
+See the detail, https://gist.github.com/Gab-km/3705015
+
+## Our GitHub Flow.  
+Due to reaons below, we have to change the style of GitHub Flow.  
+
+- we do not think deploy.  
+- we do not develop large code, usually tasks are completed within individuals.  
+
+Then, 
+- Anything in the master branch can be run. 
+- Branch is made for individuals scale, not task scale due to not so much large scale development.
+- Master branch is sharing place, use pullrequest to master when you finish some tasks. 
 
 
 
 
-
-
-# make test environment.  
+# Make Test Environment.  
 
 Delete files other than ones of which prefix is "." .  
 ``` 
