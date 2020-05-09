@@ -16,14 +16,14 @@ def main():
 
 
     for path in paths:
-        createContactPersonsDF(path)
+        df = createContactPersonsDF(path,df )
 
     pathOutput = "./List_of_Contact_Person.xlsx"
-    df.to_excel(pathOutput)
+    df.to_excel(pathOutput, index =False)
     print("List_of_Contact_Person.xlsx が作成されました。")
 
 
-def createContactPersonsDF(path):
+def createContactPersonsDF(path, df):
     wb=openpyxl.load_workbook(path)
 
     ws1 = wb[sheet_1_name]
@@ -187,6 +187,8 @@ def createContactPersonsDF(path):
     dic_patient.update(dic_all)
     df_patient = pd.DataFrame(dic_patient)
     df = pd.concat([df, df_patient])
+
+    return(df)
 
 def seeSameRowItems(ws,row_n,start_col_n,cover_range):
     l = []
