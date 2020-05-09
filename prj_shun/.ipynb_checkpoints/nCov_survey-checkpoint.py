@@ -16,8 +16,11 @@ def main():
     df2 = pd.DataFrame()
     
     for path in paths:
-        df1 = createMedicalHistoryDF(path,df1 )
-        df2 = createContactPersonsDF(path,df2 )
+        wb = openpyxl.load_workbook(path)
+        ws1 = wb[sheet_1_name]
+        ws4 = wb[sheet_4_name]
+        df1 = createMedicalHistoryDF(wb,ws1,df1 )
+        df2 = createContactPersonsDF(wb,ws1,ws4,df2 )    
 
     pathOutput1 = "./Patient_Medical_History.xlsx"
     df1.to_excel(pathOutput1, index = False)
@@ -27,11 +30,7 @@ def main():
     df2.to_excel(pathOutput2, index =False)
     print("List_of_Contact_Person.xlsx が作成されました。")
     
-def createMedicalHistoryDF(path, df):
-    wb = openpyxl.load_workbook(path)
-
-    #シート場所
-    ws1 = wb[sheet_1_name]
+def createMedicalHistoryDF(wb,ws1,df):
 
     #患者情報
     patient_id = "患者ID"
@@ -239,11 +238,8 @@ def createMedicalHistoryDF(path, df):
     
     return(df)
 
-def createContactPersonsDF(path, df):
-    wb=openpyxl.load_workbook(path)
+def createContactPersonsDF(wb,ws1,ws4,df):
 
-    ws1 = wb[sheet_1_name]
-    ws4 = wb[sheet_4_name]
 
     #患者情報
     patient_id = "患者ID"
