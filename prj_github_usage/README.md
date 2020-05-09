@@ -405,7 +405,11 @@ make a branch from that branch, edit files, and send a pull request.
 
 
 
-
+# To Do List.  
+- If you work in the wrong branch, and want to reflect changes to another branch, how?   
+- How to control data withing local environment only?   
+- How to manage jupyter notebook code efficiently?  
+- How to make new branch from old commit? 
 
 # Make Test Environment.  
 
