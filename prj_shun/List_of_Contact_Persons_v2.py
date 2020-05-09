@@ -2,7 +2,7 @@ import openpyxl
 import numpy as np
 import pandas as pd
 
-PATH = "/Users/shun/Desktop/nCoV_survey/nCoV_survey2004020_もっと修正案200504-2.xlsx"
+PATH = "./nCoV_survey2004020_もっと修正案200504-2.xlsx"
 
 def main():
     wb=openpyxl.load_workbook(PATH)
