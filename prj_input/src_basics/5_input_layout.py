@@ -8,6 +8,8 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QColor
+import types 
 
 
 class Ui_scrollArea(object):
@@ -86,26 +88,63 @@ class Ui_scrollArea(object):
         self.scrollMiddle = QtWidgets.QScrollArea(self.scrollAreaWidgetContents)
         self.scrollMiddle.setWidgetResizable(True)
         self.scrollMiddle.setObjectName("scrollMiddle")
+        self.scrollMiddle.setMinimumSize(QtCore.QSize(500,300)) 
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
         self.scrollAreaWidgetContents_2.setObjectName("scrollAreaWidgetContents_2")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayoutMacro = QtWidgets.QHBoxLayout()
-        self.horizontalLayoutMacro.setObjectName("horizontalLayoutMacro")
-        self.labelMacro = QtWidgets.QLabel(self.scrollAreaWidgetContents_2)
-        self.labelMacro.setObjectName("labelMacro")
-        self.horizontalLayoutMacro.addWidget(self.labelMacro)
-        self.comboBoxMacro = QtWidgets.QComboBox(self.scrollAreaWidgetContents_2)
-        self.comboBoxMacro.setObjectName("comboBoxMacro")
-        self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
-        self.lineMacro = QtWidgets.QLineEdit(self.scrollAreaWidgetContents_2)
-        self.lineMacro.setObjectName("lineMacro")
-        self.horizontalLayoutMacro.addWidget(self.lineMacro)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayoutMacro.addItem(spacerItem1)
-        self.verticalLayout.addLayout(self.horizontalLayoutMacro)
-        self.scrollMiddle.setWidget(self.scrollAreaWidgetContents_2)
 
+        self.horizontals = []
+        self.labels = []
+        self.comboBoxes = []
+        self.lines = []
+        self.horizontalSpacers = []
+
+        for i in range(30):
+            self.horizontalLayoutMacro = QtWidgets.QHBoxLayout()
+            self.horizontalLayoutMacro.setObjectName("horizontalLayoutMacro")
+
+            self.labelMacro = QtWidgets.QLabel(self.scrollAreaWidgetContents_2)
+            self.labelMacro.setObjectName("labelMacro")
+            self.labelMacro.setText("fun fun fun")
+            self.horizontalLayoutMacro.addWidget(self.labelMacro)
+
+            # comboBox setting.
+            self.comboBoxMacro = QtWidgets.QComboBox(self.scrollAreaWidgetContents_2)
+            self.comboBoxMacro.setObjectName("comboBoxMacro")
+            self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
+            self.comboBoxMacro.addItems( ["a","b","c"] ) 
+            # initial color 
+            pal = self.comboBoxMacro.palette()
+            pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,255) )
+            self.comboBoxMacro.setPalette(pal)
+            def changeBack(self,s):
+                ''' if compare with originla data and find difference, 
+                change color '''
+                pal = self.palette()
+                pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,0) )
+                self.setPalette(pal)
+            self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
+            self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
+
+            # lineEdit setting. 
+            self.lineMacro = QtWidgets.QLineEdit(self.scrollAreaWidgetContents_2)
+            self.lineMacro.setObjectName("lineMacro")
+            self.lineRow.setMinimumSize(QtCore.QSize(150,0)) 
+            self.horizontalLayoutMacro.addWidget(self.lineMacro)
+
+            horizontalSpacerMacro = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+            # set object. 
+            self.horizontalLayoutMacro.addItem(horizontalSpacerMacro)
+            # add each objects. 
+            self.horizontals.append(self.horizontalLayoutMacro)
+            self.verticalLayout.addLayout(self.horizontalLayoutMacro)
+            self.labels.append(self.labelMacro)
+            self.comboBoxes.append(self.comboBoxMacro)
+            self.lines.append(self.labelMacro)
+            self.horizontalSpacers.append(self.horizontalLayoutMacro)
+
+        self.scrollMiddle.setWidget(self.scrollAreaWidgetContents_2)
         self.verticalLayoutScroll.addWidget(self.scrollMiddle)
 
     def setupGridLayoutBottom(self):
@@ -182,13 +221,13 @@ class Ui_scrollArea(object):
         scrollArea.setWindowTitle(_translate("scrollArea", "ScrollArea"))
         self.pushNewRow.setText(_translate("scrollArea", "新規登録"))
         self.pushSearch.setText(_translate("scrollArea", "検索"))
-        self.labelMacro.setText(_translate("scrollArea", "TextLabel"))
         self.lineSh2.setText(_translate("scrollArea", "aaaaa"))
         self.pushButtonWrite.setText(_translate("scrollArea", "書き込み"))
         self.labelSh1.setText(_translate("scrollArea", "入力先シート"))
         self.labelSh2.setText(_translate("scrollArea", "プルタブ参照シート"))
         self.pushButtonCancel.setText(_translate("scrollArea", "キャンセル"))
         self.pushQuit.setText(_translate("scrollArea", "終了"))
+
 
 
 if __name__ == "__main__":
