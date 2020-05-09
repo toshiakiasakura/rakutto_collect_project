@@ -1,4 +1,5 @@
 import sys
+import _utils 
 from openpyxl import Workbook
 from openpyxl import load_workbook
 
@@ -13,13 +14,27 @@ import types
 
 
 path = "./test_data.xlsx"
+shName1 = "患者情報入力シート"
+shName2 = "患者プルタブシート" 
+
+tpNumeric = "数値" 
 
 class Ui_scrollArea(object):
+    def __init__(self):
+        self.row = 3
+        self.baseRow = 2
 
     def initialize(self, scrollArea):
         self.setupGUI(scrollArea)
 
 
+    def readData(self, path):
+        self.wb = load_workbook(path)
+        self.ws1 = self.wb[shName1]
+        self.ws2 = self.wb[shName2] 
+
+        self.maxRow = self.ws1.max_row
+        self.maxColumn = self.ws1.max_column
 
 
     def setupGUI(self,scrollArea):
@@ -40,13 +55,37 @@ class Ui_scrollArea(object):
         self.setupGridLayoutTop()
         self.setupScrollMiddle()
         self.setupGridLayoutBottom()
+        scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.retranslateUi(scrollArea)
 
         QtCore.QMetaObject.connectSlotsByName(scrollArea)
 
+
+    def displayRow(self):
+        num  = _utils.checkNumeric( self.lineRow.text() ) 
+        if isinstance( num, int):
+            num += 1 
+        print(num)
+        self.lineRow.setText(str(num) ) 
+
     def setupGridLayoutTop(self):
         self.gridLayoutTop = QGridLayout()
         self.gridLayoutTop.setObjectName("gridLayoutTop")
+
+        # lineRow
+        self.lineRow = QLineEdit(self.scrollAreaWidgetContents)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lineRow.sizePolicy().hasHeightForWidth())
+        self.lineRow.setSizePolicy(sizePolicy)
+        self.lineRow.setMinimumSize(QtCore.QSize(50, 0))
+
+        self.lineRow.setObjectName("lineRow")
+        self.lineRow.setText( str(self.row) )
+        self.lineRow.editingFinished.connect(self.displayRow)
+
+        self.gridLayoutTop.addWidget(self.lineRow, 0, 0, 1, 1)
 
         self.comboRef1 = QComboBox(self.scrollAreaWidgetContents)
         self.comboRef1.setObjectName("comboRef1")
@@ -56,15 +95,8 @@ class Ui_scrollArea(object):
         self.gridLayoutTop.addWidget(self.comboRef2, 1, 2, 1, 1)
         spacerItem = QSpacerItem(50, 50, QSizePolicy.MinimumExpanding, QSizePolicy.Minimum)
         self.gridLayoutTop.addItem(spacerItem, 0, 1, 1, 1)
-        self.lineRow = QLineEdit(self.scrollAreaWidgetContents)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineRow.sizePolicy().hasHeightForWidth())
-        self.lineRow.setSizePolicy(sizePolicy)
-        self.lineRow.setMinimumSize(QtCore.QSize(50, 0))
-        self.lineRow.setObjectName("lineRow")
-        self.gridLayoutTop.addWidget(self.lineRow, 0, 0, 1, 1)
+
+
         self.lineRef1 = QLineEdit(self.scrollAreaWidgetContents)
         self.lineRef1.setObjectName("lineRef1")
         self.gridLayoutTop.addWidget(self.lineRef1, 0, 3, 1, 1)
@@ -107,64 +139,68 @@ class Ui_scrollArea(object):
         self._lines = []
         self._horizontalSpacers = []
 
-        for i in range(30):
-            self.horizontalLayoutMacro = QHBoxLayout()
-            self.horizontalLayoutMacro.setObjectName("horizontalLayoutMacro")
-
-            self.labelMacro = QLabel(self.scrollAreaWidgetContents_2)
-            self.labelMacro.setObjectName("labelMacro")
-            self.labelMacro.setText("fun fun fun")
-            self.horizontalLayoutMacro.addWidget(self.labelMacro)
-
-            # comboBox setting.
-            self.comboBoxMacro = QComboBox(self.scrollAreaWidgetContents_2)
-            self.comboBoxMacro.setObjectName("comboBoxMacro")
-            self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
-            self.comboBoxMacro.addItems( ["a","b","c"] ) 
-            # initial color 
-            
-            self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,152,152);")
-
-            def changeBack(self,s):
-                ''' if compare with originla data and find difference, 
-                change color '''
-                self.setStyleSheet("background-color: rgb(255,255,0);color:rgb(0,152,152);")
-            self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
-            self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
-
-            self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
-
-            # lineEdit setting. 
-            self.lineMacro = QLineEdit(self.scrollAreaWidgetContents_2)
-            self.lineMacro.setObjectName("lineMacro")
-            self.lineRow.setMinimumSize(QtCore.QSize(150,0)) 
-            self.horizontalLayoutMacro.addWidget(self.lineMacro)
-
-            horizontalSpacerMacro = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-            # set object. 
-            self.horizontalLayoutMacro.addItem(horizontalSpacerMacro)
-            self.verticalLayout.addLayout(self.horizontalLayoutMacro)
-            # add each objects. 
-            self._horizontals.append(self.horizontalLayoutMacro)
-            self._labels.append(self.labelMacro)
-            self._comboBoxes.append(self.comboBoxMacro)
-            self._lines.append(self.labelMacro)
-            self._horizontalSpacers.append(self.horizontalLayoutMacro)
+        for i in range(1, self.maxColumn+1 ):
+            # check set new horizontal layout or not 
+            colName = self.ws1.cell(self.baseRow, i).value 
+            colName = _utils.checkStr(colName)
+            if colName == "":
+                continue
+            self.setupMacros(i,colName)
 
         self.scrollMiddle.setWidget(self.scrollAreaWidgetContents_2)
         self.verticalLayoutScroll.addWidget(self.scrollMiddle)
 
+    def setupMacros(self,i,colName):
+        self.horizontalLayoutMacro = QHBoxLayout()
+        self.horizontalLayoutMacro.setObjectName("horizontalLayoutMacro")
+
+        # labelMacro
+        self.labelMacro = QLabel(self.scrollAreaWidgetContents_2)
+        self.labelMacro.setObjectName("labelMacro")
+        self.labelMacro.setMinimumSize(QtCore.QSize(150,0)) 
+
+        self.labelMacro.setText( colName )
+        
+        self.horizontalLayoutMacro.addWidget(self.labelMacro)
+
+        # comboBox setting.
+        self.comboBoxMacro = QComboBox(self.scrollAreaWidgetContents_2)
+        self.comboBoxMacro.setObjectName("comboBoxMacro")
+        self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
+        self.comboBoxMacro.addItems( ["a","b","c"] ) 
+        # initial color 
+        
+        self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,152,152);")
+
+        def changeBack(self,s):
+            ''' if compare with originla data and find difference, 
+            change color '''
+            self.setStyleSheet("background-color: rgb(255,255,0);color:rgb(0,152,152);")
+        self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
+        self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
+
+        self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
+
+        # lineEdit setting. 
+        self.lineMacro = QLineEdit(self.scrollAreaWidgetContents_2)
+        self.lineMacro.setObjectName("lineMacro")
+        self.lineRow.setMinimumSize(QtCore.QSize(150,0)) 
+        self.horizontalLayoutMacro.addWidget(self.lineMacro)
+
+        horizontalSpacerMacro = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        # set object. 
+        self.horizontalLayoutMacro.addItem(horizontalSpacerMacro)
+        self.verticalLayout.addLayout(self.horizontalLayoutMacro)
+        # add each objects. 
+        self._horizontals.append(self.horizontalLayoutMacro)
+        self._labels.append(self.labelMacro)
+        self._comboBoxes.append(self.comboBoxMacro)
+        self._lines.append(self.labelMacro)
+        self._horizontalSpacers.append(self.horizontalLayoutMacro)
+
     def setupGridLayoutBottom(self):
         self.gridLayoutBottom = QGridLayout()
         self.gridLayoutBottom.setObjectName("gridLayoutBottom")
-        self.lineSh2 = QLineEdit(self.scrollAreaWidgetContents)
-        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineSh2.sizePolicy().hasHeightForWidth())
-        self.lineSh2.setSizePolicy(sizePolicy)
-        self.lineSh2.setObjectName("lineSh2")
-        self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.gridLayoutBottom.addItem(spacerItem2, 0, 2, 1, 1)
         self.pushButtonWrite = QPushButton(self.scrollAreaWidgetContents)
@@ -176,15 +212,8 @@ class Ui_scrollArea(object):
         self.pushButtonWrite.setMinimumSize(QtCore.QSize(100, 0))
         self.pushButtonWrite.setObjectName("pushButtonWrite")
         self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
-        self.lineSh1 = QLineEdit(self.scrollAreaWidgetContents)
-        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineSh1.sizePolicy().hasHeightForWidth())
-        self.lineSh1.setSizePolicy(sizePolicy)
-        self.lineSh1.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineSh1.setObjectName("lineSh1")
-        self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
+
+        # label1
         self.labelSh1 = QLabel(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -193,6 +222,8 @@ class Ui_scrollArea(object):
         self.labelSh1.setSizePolicy(sizePolicy)
         self.labelSh1.setObjectName("labelSh1")
         self.gridLayoutBottom.addWidget(self.labelSh1, 0, 0, 1, 1)
+
+        # label2 
         self.labelSh2 = QLabel(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -201,6 +232,33 @@ class Ui_scrollArea(object):
         self.labelSh2.setSizePolicy(sizePolicy)
         self.labelSh2.setObjectName("labelSh2")
         self.gridLayoutBottom.addWidget(self.labelSh2, 1, 0, 1, 1)
+
+        # lineSh1
+        self.lineSh1 = QLineEdit(self.scrollAreaWidgetContents)
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lineSh1.sizePolicy().hasHeightForWidth())
+        self.lineSh1.setSizePolicy(sizePolicy)
+        self.lineSh1.setMinimumSize(QtCore.QSize(100, 0))
+        self.lineSh1.setObjectName("lineSh1")
+        self.lineSh1.setText(shName1)
+        self.lineSh1.setEnabled(False) 
+        self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
+
+        # lineSh2 
+        self.lineSh2 = QLineEdit(self.scrollAreaWidgetContents)
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lineSh2.sizePolicy().hasHeightForWidth())
+        self.lineSh2.setSizePolicy(sizePolicy)
+        self.lineSh2.setObjectName("lineSh2")
+        self.lineSh2.setText(shName2)
+        self.lineSh2.setEnabled(False) 
+        self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
+
+
         self.pushButtonCancel = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -228,7 +286,6 @@ class Ui_scrollArea(object):
 
         self.verticalLayoutScroll.addLayout(self.gridLayoutBottom)
         self.scrollVerticalLayout.addLayout(self.verticalLayoutScroll)
-        scrollArea.setWidget(self.scrollAreaWidgetContents)
 
     def quitProcess(self):
         # preFinishProcess()
@@ -243,7 +300,6 @@ class Ui_scrollArea(object):
         scrollArea.setWindowTitle(_translate("scrollArea", "ScrollArea"))
         self.pushNewRow.setText(_translate("scrollArea", "新規登録"))
         self.pushSearch.setText(_translate("scrollArea", "検索"))
-        self.lineSh2.setText(_translate("scrollArea", "aaaaa"))
         self.pushButtonWrite.setText(_translate("scrollArea", "書き込み"))
         self.labelSh1.setText(_translate("scrollArea", "入力先シート"))
         self.labelSh2.setText(_translate("scrollArea", "プルタブ参照シート"))
@@ -251,11 +307,18 @@ class Ui_scrollArea(object):
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
 
-
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
+
     scrollArea = QScrollArea()
     ui = Ui_scrollArea()
+    ui.readData(path)
+
     ui.initialize(scrollArea)
+
     scrollArea.show()
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()
