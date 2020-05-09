@@ -6,7 +6,7 @@ https://techwithtim.net/tutorials/pyqt5-tutorial/how-to-use-qtdesigner/
 # Plotting with PyQtGraph
 https://www.learnpyqt.com/courses/graphics-plotting/plotting-pyqtgraph/
 
-# Python and PyQt: Building a GUI Desktop Calculator
+# python and pyqt: building a gui desktop calculator
 https://realpython.com/python-pyqt-gui-calculator/
 
 # Getting Started with PyQt 
@@ -42,3 +42,13 @@ https://www.haya-programming.com/entry/2018/10/08/045410
 # matlabでeval関数を用いて変数を作るように、name0,name1,name2・・・というような"文字列"+数値を繰り返し文で作りたいのですが、Pythonの初心者なもので検索しても全くわかりません。
 よろしくおねがいします。
 https://teratail.com/questions/9130
+
+
+# PyQt Class Reference ( for PyQt4 ) 
+https://www.riverbankcomputing.com/static/Docs/PyQt4/classes.html
+
+# PyQt5 – Changing background color of Push Button when mouse hover over it
+https://www.geeksforgeeks.org/pyqt5-changing-background-color-of-push-button-when-mouse-hover-over-it/
+
+# QComboBox color change
+https://forum.qt.io/topic/74113/qcombobox-color-change/3
