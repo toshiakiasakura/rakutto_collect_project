@@ -2,6 +2,7 @@ import openpyxl
 import numpy as np
 import pandas as pd
 import glob
+import sys
 
 PATH = "./nCoV_survey_files"
 
@@ -10,25 +11,40 @@ sheet_4_name = "接触者リスト（添付3-2）"
 
 def main():
     path2xlsx = PATH + "/*.xlsx"
-    paths = glob.glob(path2xlsx)
+    allFilePaths = glob.glob(path2xlsx)
+    extractFilePaths = [i for i in allFilePaths if '~$' not in i]
+    openFilePaths = [i for i in allFilePaths if '~$' in i]
+    openFileNames = [s.replace(PATH+"/", '') for s in openFilePaths]
+    
+    if openFileNames != []:
+        print("フォルダ内に一時ファイルが存在します。ファイルが開いたままである可能性があります。確認して下さい。")
+        for i in openFileNames:
+            print("対象ファイル名:" + i)
+        sys.exit()
     
     df1 = pd.DataFrame()
     df2 = pd.DataFrame()
     
-    for path in paths:
+    for path in extractFilePaths:
         wb = openpyxl.load_workbook(path)
         ws1 = wb[sheet_1_name]
         ws4 = wb[sheet_4_name]
-        df1 = createMedicalHistoryDF(wb,ws1,df1 )
-        df2 = createContactPersonsDF(wb,ws1,ws4,df2 )    
-
-    pathOutput1 = "./Patient_Medical_History.xlsx"
-    df1.to_excel(pathOutput1, index = False)
-    print("Patient_Medical_History.xlsx が作成されました。")
+        df1 = createMedicalHistoryDF(wb,ws1,df1)
+        df2 = createContactPersonsDF(wb,ws1,ws4,df2)    
     
-    pathOutput2 = "./List_of_Contact_Person.xlsx"
-    df2.to_excel(pathOutput2, index =False)
-    print("List_of_Contact_Person.xlsx が作成されました。")
+    extractFileNames = [s.replace(PATH+"/", '') for s in extractFilePaths]
+    extractFileNames.sort()
+    dic_path = {"使用したファイル":extractFileNames}
+    df3 = pd.DataFrame(dic_path)
+    
+    pathOutput = "./積極的疫学調査調査票抽出データ.xlsx"
+    
+    with pd.ExcelWriter(pathOutput, engine="openpyxl", mode="w") as writer:
+        df1.to_excel(writer, sheet_name="既往歴")
+        df2.to_excel(writer, sheet_name="接触者リスト")
+        df3.to_excel(writer, sheet_name="使用したファイル")
+        
+    print("積極的疫学調査調査票抽出データ.xlsxが作成されました。")
     
 def createMedicalHistoryDF(wb,ws1,df):
 
@@ -154,7 +170,7 @@ def createMedicalHistoryDF(wb,ws1,df):
         canc
     ]
 
-    dic_1 = getRowIndexDict(ws1,mhcp,col_1)
+    dic_1 = getRowIndexDict(ws1,col_1,mhcp)
 
     yes_no_l = []
     for i in dic_1.values():
@@ -313,7 +329,7 @@ def createContactPersonsDF(wb,ws1,ws4,df):
         other_out,
     ]
 
-    dic_1=getColIndexDict(ws4,cln,col_1)
+    dic_1=getColIndexDict(ws4,col_1,cln)
 
     name_l=[]
     for i in range(cln+2,ws4.max_row-1):
@@ -331,7 +347,7 @@ def createContactPersonsDF(wb,ws1,ws4,df):
         x = {k:l}
         dic_l_1.update(x)
 
-    dic_2=getColIndexDict(ws4,cln,col_2)
+    dic_2=getColIndexDict(ws4,col_2,cln)
 
 
     dic_l_2 = {}
@@ -353,7 +369,7 @@ def createContactPersonsDF(wb,ws1,ws4,df):
         x = {k:l}
         dic_l_2.update(x)
 
-    dic_3 = getColIndexDict(ws4,cln,col_3)
+    dic_3 = getColIndexDict(ws4,col_3,cln)
 
     dic_l_3 = {}
     for k,v in dic_3.items():
@@ -414,32 +430,32 @@ def getItems_SeeSameRowItems(ws,row_n,start_col_n,cover_range,item):
         return item
     
 
-def getColIndex(ws,col_loc_num,colName):
+def getColIndex(ws,colName,colLocNum=2):
     colIndex = False
     for  i in range(1,ws.max_column+1):
-        if ws.cell(col_loc_num, i)._value  == colName:
+        if ws.cell(colLocNum, i)._value  == colName:
             colIndex = i
             return(colIndex)
     raise Exception(f"{colName} の名前が見つかりませんでした。")
 
-def getColIndexDict(ws,col_loc_num,colNames) :
+def getColIndexDict(ws,colNames,colLocNum= 2 ) :
     dic_ = {}
     for c in colNames: 
-        dic_[c] = getColIndex(ws,col_loc_num,c) 
+        dic_[c] = getColIndex(ws,c,colLocNum ) 
     return(dic_) 
 
-def getRowIndex(ws, row_loc_num, rowName):
+def getRowIndex(ws, rowName, rowLocNum):
     rowIndex = False
     for i in range(1,ws.max_row+1):
-        if ws.cell(i, row_loc_num)._value  == rowName:
+        if ws.cell(i, rowLocNum)._value  == rowName:
             rowIndex = i
             return(rowIndex)
     raise Exception(f"{rowName} の名前が見つかりませんでした。")
 
-def getRowIndexDict(ws,row_loc_num,rowNames) :
+def getRowIndexDict(ws,rowNames,rowLocNum) :
     dic_ = {}
     for r in rowNames: 
-        dic_[r] = getRowIndex(ws,row_loc_num,r) 
+        dic_[r] = getRowIndex(ws,r,rowLocNum) 
     return(dic_) 
 
 def c_value(ws,r,c):
@@ -447,3 +463,4 @@ def c_value(ws,r,c):
 
 if __name__ == "__main__":
     main()
+    
