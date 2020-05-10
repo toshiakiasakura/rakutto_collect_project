@@ -23,6 +23,7 @@ class Ui_scrollArea(object):
     def __init__(self):
         self.row = 3
         self.baseRow = 2
+        self.filter = [4,5,6]
 
     def initialize(self, scrollArea):
         self.setupGUI(scrollArea)
@@ -36,6 +37,18 @@ class Ui_scrollArea(object):
         self.maxRow = self.ws1.max_row
         self.maxColumn = self.ws1.max_column
 
+        # set colNameDic 
+        self.colNameDic = {}
+        self.indNameDic = {}
+        for i in range(1,self.maxRow + 1 ): 
+            colName = self.ws1.cell(self.baseRow, i).value 
+            colName = _utils.checkStr(colName)
+            if colName == "" or i in self.filter:
+                continue
+            self.colNameDic[colName] = i 
+
+        for k,v in self.colNameDic.items():
+            self.indNameDic[v] = k 
 
     def setupGUI(self,scrollArea):
         scrollArea.setObjectName("scrollArea")
@@ -61,12 +74,22 @@ class Ui_scrollArea(object):
         QtCore.QMetaObject.connectSlotsByName(scrollArea)
 
 
-    def displayRow(self):
+    def changeRowRelated(self):
         num  = _utils.checkNumeric( self.lineRow.text() ) 
         if isinstance( num, int):
             num += 1 
+            self.row = num
+        else:
+            raise Exception("not int value is inputted")
+
         print(num)
+        print(self.ws1.max_row)
         self.lineRow.setText(str(num) ) 
+
+        # change values 
+        self.changeLineRef1( self.comboRef1.currentText() ) 
+        self.changeLineRef2( self.comboRef2.currentText() ) 
+        self.changeMacroValues()
 
     def setupGridLayoutTop(self):
         self.gridLayoutTop = QGridLayout()
@@ -83,32 +106,59 @@ class Ui_scrollArea(object):
 
         self.lineRow.setObjectName("lineRow")
         self.lineRow.setText( str(self.row) )
-        self.lineRow.editingFinished.connect(self.displayRow)
+        self.lineRow.editingFinished.connect(self.changeRowRelated)
 
         self.gridLayoutTop.addWidget(self.lineRow, 0, 0, 1, 1)
 
+
+        horizontalSpacerTop= QSpacerItem(50, 50, QSizePolicy.MinimumExpanding, QSizePolicy.Minimum)
+        self.gridLayoutTop.addItem(horizontalSpacerTop, 0, 1, 1, 1)
+
+        # comboRef1
         self.comboRef1 = QComboBox(self.scrollAreaWidgetContents)
         self.comboRef1.setObjectName("comboRef1")
+        self.comboRef1.addItems( self.colNameDic.keys() ) 
+        self.comboRef1.activated[str].connect(self.changeLineRef1)        
         self.gridLayoutTop.addWidget(self.comboRef1, 0, 2, 1, 1)
+
+        # comboRef2 
         self.comboRef2 = QComboBox(self.scrollAreaWidgetContents)
         self.comboRef2.setObjectName("comboRef2")
+        self.comboRef2.addItems( self.colNameDic.keys() ) 
+        self.comboRef2.setCurrentIndex(1)
+        self.comboRef2.activated[str].connect(self.changeLineRef2)        
         self.gridLayoutTop.addWidget(self.comboRef2, 1, 2, 1, 1)
-        spacerItem = QSpacerItem(50, 50, QSizePolicy.MinimumExpanding, QSizePolicy.Minimum)
-        self.gridLayoutTop.addItem(spacerItem, 0, 1, 1, 1)
 
-
+        # lineRef1 
         self.lineRef1 = QLineEdit(self.scrollAreaWidgetContents)
         self.lineRef1.setObjectName("lineRef1")
+        val =  self.getValueFromColumn( self.comboRef1.currentText() ) 
+        self.lineRef1.setText(val)
+        self.lineRef1.setEnabled(False) 
         self.gridLayoutTop.addWidget(self.lineRef1, 0, 3, 1, 1)
-        self.lineSearch = QLineEdit(self.scrollAreaWidgetContents)
-        self.lineSearch.setObjectName("lineSearch")
-        self.gridLayoutTop.addWidget(self.lineSearch, 0, 5, 1, 1)
+
+        # lineRef2
         self.lineRef2 = QLineEdit(self.scrollAreaWidgetContents)
         self.lineRef2.setObjectName("lineRef2")
+        val =  self.getValueFromColumn( self.comboRef2.currentText() ) 
+        self.lineRef2.setText(val)
+        self.lineRef2.setEnabled(False) 
         self.gridLayoutTop.addWidget(self.lineRef2, 1, 3, 1, 1)
+
+        # comboSearch 
         self.comboSearch = QComboBox(self.scrollAreaWidgetContents)
+        self.comboSearch.addItems( self.colNameDic.keys() ) 
         self.comboSearch.setObjectName("comboSearch")
+        self.comboSearch.activated[str].connect(self.changeLineSearch)        
         self.gridLayoutTop.addWidget(self.comboSearch, 0, 4, 1, 1)
+
+        # lineSearch 
+        self.lineSearch = QLineEdit(self.scrollAreaWidgetContents)
+        self.lineSearch.setObjectName("lineSearch")
+        val =  self.getValueFromColumn( self.comboSearch.currentText() ) 
+        self.lineSearch.setText(val)
+        self.gridLayoutTop.addWidget(self.lineSearch, 0, 5, 1, 1)
+
         self.pushNewRow = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -139,18 +189,14 @@ class Ui_scrollArea(object):
         self._lines = []
         self._horizontalSpacers = []
 
-        for i in range(1, self.maxColumn+1 ):
+        for colName in self.colNameDic.keys():
             # check set new horizontal layout or not 
-            colName = self.ws1.cell(self.baseRow, i).value 
-            colName = _utils.checkStr(colName)
-            if colName == "":
-                continue
-            self.setupMacros(i,colName)
+            self.setupMacros(colName)
 
         self.scrollMiddle.setWidget(self.scrollAreaWidgetContents_2)
         self.verticalLayoutScroll.addWidget(self.scrollMiddle)
 
-    def setupMacros(self,i,colName):
+    def setupMacros(self,colName):
         self.horizontalLayoutMacro = QHBoxLayout()
         self.horizontalLayoutMacro.setObjectName("horizontalLayoutMacro")
 
@@ -158,9 +204,7 @@ class Ui_scrollArea(object):
         self.labelMacro = QLabel(self.scrollAreaWidgetContents_2)
         self.labelMacro.setObjectName("labelMacro")
         self.labelMacro.setMinimumSize(QtCore.QSize(150,0)) 
-
         self.labelMacro.setText( colName )
-        
         self.horizontalLayoutMacro.addWidget(self.labelMacro)
 
         # comboBox setting.
@@ -169,13 +213,12 @@ class Ui_scrollArea(object):
         self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
         self.comboBoxMacro.addItems( ["a","b","c"] ) 
         # initial color 
-        
-        self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,152,152);")
+        self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,0,0);")
 
         def changeBack(self,s):
             ''' if compare with originla data and find difference, 
             change color '''
-            self.setStyleSheet("background-color: rgb(255,255,0);color:rgb(0,152,152);")
+            self.setStyleSheet("background-color: rgb(255,255,0);color:rgb(0,0,0);")
         self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
         self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
 
@@ -184,7 +227,24 @@ class Ui_scrollArea(object):
         # lineEdit setting. 
         self.lineMacro = QLineEdit(self.scrollAreaWidgetContents_2)
         self.lineMacro.setObjectName("lineMacro")
-        self.lineRow.setMinimumSize(QtCore.QSize(150,0)) 
+        self.lineMacro.setMinimumSize(QtCore.QSize(150,0)) 
+        self.lineMacro.setStyleSheet(
+                "QLineEdit { background-color : white; color:rgb(0,60,60)}")
+        self.lineMacro.colName = colName 
+        def changeBack(selfMacro ):
+            b = self.compareValue( selfMacro.text() , selfMacro.colName ) 
+            if b:
+                selfMacro.setStyleSheet(
+                "QLineEdit { background-color : white; color:rgb(0,60,60)}")
+            else:
+                selfMacro.setStyleSheet(
+                "QLineEdit { background-color : yellow ; color:rgb(0,60,60)}")
+        self.lineMacro.changeBack = types.MethodType(changeBack,self.lineMacro)
+        self.lineMacro.editingFinished.connect( self.lineMacro.changeBack )
+
+        v = self.getValueFromColumn(self.labelMacro.text() ) 
+        self.lineMacro.setText( v ) 
+
         self.horizontalLayoutMacro.addWidget(self.lineMacro)
 
         horizontalSpacerMacro = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -195,7 +255,7 @@ class Ui_scrollArea(object):
         self._horizontals.append(self.horizontalLayoutMacro)
         self._labels.append(self.labelMacro)
         self._comboBoxes.append(self.comboBoxMacro)
-        self._lines.append(self.labelMacro)
+        self._lines.append(self.lineMacro)
         self._horizontalSpacers.append(self.horizontalLayoutMacro)
 
     def setupGridLayoutBottom(self):
@@ -287,14 +347,6 @@ class Ui_scrollArea(object):
         self.verticalLayoutScroll.addLayout(self.gridLayoutBottom)
         self.scrollVerticalLayout.addLayout(self.verticalLayoutScroll)
 
-    def quitProcess(self):
-        # preFinishProcess()
-        QApplication.instance().quit()
-
-    def closeEvent(self, event):
-        # preFinishProcess()
-        event.accept()
-
     def retranslateUi(self, scrollArea):
         _translate = QtCore.QCoreApplication.translate
         scrollArea.setWindowTitle(_translate("scrollArea", "ScrollArea"))
@@ -306,6 +358,58 @@ class Ui_scrollArea(object):
         self.pushButtonCancel.setText(_translate("scrollArea", "キャンセル"))
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
+    def quitProcess(self):
+        # preFinishProcess()
+        QApplication.instance().quit()
+
+    def closeEvent(self, event):
+        # preFinishProcess()
+        event.accept()
+
+    def changeMacroValues(self):
+        for i in range(len(self._lines) ) :
+            v = self.getValueFromColumn( self._labels[i].text() ) 
+            self._lines[i].setText(v)  
+
+
+    def changeLineRef1(self,s ) :
+        v = self.getValueFromColumn(s)
+        self.lineRef1.setText(v) 
+
+    def changeLineRef2(self,s ) :
+        v = self.getValueFromColumn(s)
+        self.lineRef2.setText(v) 
+
+    def changeLineSearch(self, s):
+        v = self.getValueFromColumn(s)
+        self.lineSearch.setText(v)
+
+    def compareValue(self, v,colName):
+        colInd = self.colNameDic[colName]
+        origV = self.ws1.cell(self.row, colInd).value
+        origV = _utils.checkStr(origV) 
+        if v == origV:
+            return(True)
+        else:
+            return(False)
+
+
+
+    def getAllItemsCombo(self,combo):
+        lis_ = []
+        for i in range(combo.count()):
+            lis_.append( combo.itemText(i) ) 
+        return( lis_) 
+
+    def getValueFromColumn(self,colName):
+        colInd = self.colNameDic.get(colName ,None) 
+        if colInd == None:
+            print("Error there is no column name") 
+            v = "eeeeerrrr"
+        else:
+            v = self.ws1.cell(self.row,colInd).value  
+            v = _utils.checkStr(v) 
+        return(v) 
 
 def main():
     app = QApplication(sys.argv)
