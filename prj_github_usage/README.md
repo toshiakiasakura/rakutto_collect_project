@@ -398,11 +398,18 @@ Due to reaons below, we have to change the style of GitHub Flow.
 
 Then, 
 - Anything in the master branch can be run. 
-- Branch is made for individuals scale, not task scale due to not so much large scale development.
 - Master branch is sharing place, use pullrequest to master when you finish some tasks. 
+- Branch is made for individuals scale  
+- If you want to edit the branch created by others,   
+make a branch from that branch, edit files, and send a pull request. 
 
 
 
+# To Do List.  
+- If you work in the wrong branch, and want to reflect changes to another branch, how?   
+- How to control data withing local environment only?   
+- How to manage jupyter notebook code efficiently?  
+- How to make new branch from old commit? 
 
 # Make Test Environment.  
 
