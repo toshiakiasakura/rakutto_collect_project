@@ -11,6 +11,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QColor
 import types 
 
+from openpyxl import Workbook
+from openpyxl import load_workbook
+
+
+
+
 
 class Ui_scrollArea(object):
 
@@ -94,11 +100,11 @@ class Ui_scrollArea(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
         self.verticalLayout.setObjectName("verticalLayout")
 
-        self.horizontals = []
-        self.labels = []
-        self.comboBoxes = []
-        self.lines = []
-        self.horizontalSpacers = []
+        self._horizontals = []
+        self._labels = []
+        self._comboBoxes = []
+        self._lines = []
+        self._horizontalSpacers = []
 
         for i in range(30):
             self.horizontalLayoutMacro = QtWidgets.QHBoxLayout()
@@ -115,16 +121,16 @@ class Ui_scrollArea(object):
             self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
             self.comboBoxMacro.addItems( ["a","b","c"] ) 
             # initial color 
-            pal = self.comboBoxMacro.palette()
-            pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,255) )
-            self.comboBoxMacro.setPalette(pal)
+            
+            self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,152,152);")
+
             def changeBack(self,s):
                 ''' if compare with originla data and find difference, 
                 change color '''
-                pal = self.palette()
-                pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,0) )
-                self.setPalette(pal)
+                self.setStyleSheet("background-color: rgb(255,255,0);color:rgb(0,152,152);")
             self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
+            self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
+
             self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
 
             # lineEdit setting. 
@@ -136,13 +142,13 @@ class Ui_scrollArea(object):
             horizontalSpacerMacro = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
             # set object. 
             self.horizontalLayoutMacro.addItem(horizontalSpacerMacro)
-            # add each objects. 
-            self.horizontals.append(self.horizontalLayoutMacro)
             self.verticalLayout.addLayout(self.horizontalLayoutMacro)
-            self.labels.append(self.labelMacro)
-            self.comboBoxes.append(self.comboBoxMacro)
-            self.lines.append(self.labelMacro)
-            self.horizontalSpacers.append(self.horizontalLayoutMacro)
+            # add each objects. 
+            self._horizontals.append(self.horizontalLayoutMacro)
+            self._labels.append(self.labelMacro)
+            self._comboBoxes.append(self.comboBoxMacro)
+            self._lines.append(self.labelMacro)
+            self._horizontalSpacers.append(self.horizontalLayoutMacro)
 
         self.scrollMiddle.setWidget(self.scrollAreaWidgetContents_2)
         self.verticalLayoutScroll.addWidget(self.scrollMiddle)

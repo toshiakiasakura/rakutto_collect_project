@@ -48,7 +48,7 @@ class Ui_MainWindow(object):
         for i in range(50):
             self.comboMacro = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
             self.comboMacro.setObjectName("comboBox")
-            self.comboMacro.addItems( ["A","B","C"] ) 
+            self.comboMacro.addItems( ["a","b","c"] ) 
 
             pal = self.comboMacro.palette()
             pal.setColor(QtGui.QPalette.Button, QtGui.QColor(255,255,255) )
