@@ -2,6 +2,7 @@ import openpyxl
 import numpy as np
 import pandas as pd
 import glob
+import sys
 
 PATH = "./nCoV_survey_files"
 
@@ -10,25 +11,40 @@ sheet_4_name = "接触者リスト（添付3-2）"
 
 def main():
     path2xlsx = PATH + "/*.xlsx"
-    paths = glob.glob(path2xlsx)
+    allFilePaths = glob.glob(path2xlsx)
+    extractFilePaths = [i for i in allFilePaths if '~$' not in i]
+    openFilePaths = [i for i in allFilePaths if '~$' in i]
+    openFileNames = [s.replace(PATH+"/", '') for s in openFilePaths]
+    
+    if openFileNames != []:
+        print("フォルダ内に一時ファイルが存在します。ファイルが開いたままである可能性があります。確認して下さい。")
+        for i in openFileNames:
+            print("対象ファイル名:" + i)
+        sys.exit()
     
     df1 = pd.DataFrame()
     df2 = pd.DataFrame()
     
-    for path in paths:
+    for path in extractFilePaths:
         wb = openpyxl.load_workbook(path)
         ws1 = wb[sheet_1_name]
         ws4 = wb[sheet_4_name]
-        df1 = createMedicalHistoryDF(wb,ws1,df1 )
-        df2 = createContactPersonsDF(wb,ws1,ws4,df2 )    
-
-    pathOutput1 = "./Patient_Medical_History.xlsx"
-    df1.to_excel(pathOutput1, index = False)
-    print("Patient_Medical_History.xlsx が作成されました。")
+        df1 = createMedicalHistoryDF(wb,ws1,df1)
+        df2 = createContactPersonsDF(wb,ws1,ws4,df2)    
     
-    pathOutput2 = "./List_of_Contact_Person.xlsx"
-    df2.to_excel(pathOutput2, index =False)
-    print("List_of_Contact_Person.xlsx が作成されました。")
+    extractFileNames = [s.replace(PATH+"/", '') for s in extractFilePaths]
+    extractFileNames.sort()
+    dic_path = {"使用したファイル":extractFileNames}
+    df3 = pd.DataFrame(dic_path)
+    
+    pathOutput = "./積極的疫学調査調査票抽出データ.xlsx"
+    
+    with pd.ExcelWriter(pathOutput, engine="openpyxl", mode="w") as writer:
+        df1.to_excel(writer, sheet_name="既往歴")
+        df2.to_excel(writer, sheet_name="接触者リスト")
+        df3.to_excel(writer, sheet_name="使用したファイル")
+        
+    print("積極的疫学調査調査票抽出データ.xlsxが作成されました。")
     
 def createMedicalHistoryDF(wb,ws1,df):
 
