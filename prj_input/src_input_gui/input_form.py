@@ -19,11 +19,12 @@ shName2 = "患者プルタブシート"
 
 tpNumeric = "数値" 
 
-class Ui_scrollArea(object):
+class Ui_scrollArea():
     def __init__(self):
         self.row = 3
         self.baseRow = 2
         self.filter = [4,5,6]
+        self.questionTitle = "confirmation"
 
     def initialize(self, scrollArea):
         self.setupGUI(scrollArea)
@@ -35,10 +36,13 @@ class Ui_scrollArea(object):
         self.ws2 = self.wb[shName2] 
 
         self.maxRow = self.ws1.max_row
+        self.maxRow2 = self.ws2.max_row
         self.maxColumn = self.ws1.max_column
+        self.maxColumn2 = self.ws2.max_column
 
         # set colNameDic 
         self.colNameDic = {}
+        self.colNameDic2 = {}
         self.indNameDic = {}
         for i in range(1,self.maxRow + 1 ): 
             colName = self.ws1.cell(self.baseRow, i).value 
@@ -50,6 +54,13 @@ class Ui_scrollArea(object):
         for k,v in self.colNameDic.items():
             self.indNameDic[v] = k 
 
+        for col in range(1, self.maxColumn2 + 1) :
+            v = self.ws2.cell(self.baseRow, col).value
+            v = _utils.checkStr( v ) 
+            if v in self.colNameDic.keys() :
+                self.colNameDic2[v] = col
+        
+    
     def setupGUI(self,scrollArea):
         scrollArea.setObjectName("scrollArea")
         mainWidth = 1000
@@ -207,22 +218,6 @@ class Ui_scrollArea(object):
         self.labelMacro.setText( colName )
         self.horizontalLayoutMacro.addWidget(self.labelMacro)
 
-        # comboBox setting.
-        self.comboBoxMacro = QComboBox(self.scrollAreaWidgetContents_2)
-        self.comboBoxMacro.setObjectName("comboBoxMacro")
-        self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
-        self.comboBoxMacro.addItems( ["a","b","c"] ) 
-        # initial color 
-        self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,0,0);")
-
-        def changeBack(self,s):
-            ''' if compare with originla data and find difference, 
-            change color '''
-            self.setStyleSheet("background-color: rgb(255,255,0);color:rgb(0,0,0);")
-        self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
-        self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
-
-        self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
 
         # lineEdit setting. 
         self.lineMacro = QLineEdit(self.scrollAreaWidgetContents_2)
@@ -231,11 +226,14 @@ class Ui_scrollArea(object):
         self.lineMacro.setStyleSheet(
                 "QLineEdit { background-color : white; color:rgb(0,60,60)}")
         self.lineMacro.colName = colName 
+        self.lineMacro._same = False 
         def changeBack(selfMacro ):
             b = self.compareValue( selfMacro.text() , selfMacro.colName ) 
+            selfMacro._same = b
             if b:
                 selfMacro.setStyleSheet(
                 "QLineEdit { background-color : white; color:rgb(0,60,60)}")
+
             else:
                 selfMacro.setStyleSheet(
                 "QLineEdit { background-color : yellow ; color:rgb(0,60,60)}")
@@ -247,8 +245,38 @@ class Ui_scrollArea(object):
 
         self.horizontalLayoutMacro.addWidget(self.lineMacro)
 
+        # comboBox setting.
+        self.comboBoxMacro = QComboBox(self.scrollAreaWidgetContents_2)
+        self.comboBoxMacro.setObjectName("comboBoxMacro")
+        self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
+        lis_ = self.getItemsFromSheet2(colName) 
+        self.comboBoxMacro.addItems( lis_ ) 
+        self.comboBoxMacro.colName = colName
+        self.comboBoxMacro.defaultItems = lis_ 
+        self.comboBoxMacro.line = self.lineMacro
+        # initial color 
+        self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,0,0);")
+
+        def changeBack(selfMacro):
+            v = selfMacro.currentText()
+            selfMacro.line.setText( v ) 
+
+            b = self.compareValue( v , selfMacro.colName ) 
+            selfMacro.line._same = b
+            if b:
+                selfMacro.setStyleSheet(
+                "background-color : white; color:rgb(0,60,60)")
+            else:
+                selfMacro.setStyleSheet(
+                "background-color : yellow ; color:rgb(0,60,60)")
+
+        self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
+        self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
+
+        self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
+
+        # spacer  setting 
         horizontalSpacerMacro = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        # set object. 
         self.horizontalLayoutMacro.addItem(horizontalSpacerMacro)
         self.verticalLayout.addLayout(self.horizontalLayoutMacro)
         # add each objects. 
@@ -359,17 +387,40 @@ class Ui_scrollArea(object):
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
     def quitProcess(self):
-        # preFinishProcess()
+        print("come3")
+        self.preFinishProcess()
         QApplication.instance().quit()
 
     def closeEvent(self, event):
-        # preFinishProcess()
+        self.preFinishProcess()
         event.accept()
+
+    def preFinishProcess(self):
+        flag = self.checkDiffExist()
+        print("come?")
+        if flag :
+            print("come2?")
+            exp1 = "現在、変更されている変更は保存されません。よろしいでしょうか。" 
+            #QMessageBox.question(QtWidgets(), self.questionTitle,exp1, QMessageBox.Yes)
 
     def changeMacroValues(self):
         for i in range(len(self._lines) ) :
+            # line setting 
             v = self.getValueFromColumn( self._labels[i].text() ) 
             self._lines[i].setText(v)  
+            # comboBox setting 
+            self._comboBoxes[i].clear()
+            self._comboBoxes[i].addItems( self._comboBoxes[i].defaultItems ) 
+            if v not in self._comboBoxes[i].defaultItems:
+                self._comboBoxes[i].insertItem(0,v)
+
+    def checkDiffExist(self):
+        flag = False
+        for i in range( len(self._lines) ) :
+            if not self._lines[i]._same:
+                flag = True
+                return(flag)
+        return(flag) 
 
 
     def changeLineRef1(self,s ) :
@@ -393,6 +444,19 @@ class Ui_scrollArea(object):
         else:
             return(False)
 
+
+    def getItemsFromSheet2(self, colName):
+        index = self.colNameDic2.get(colName, None)
+        if index == None:
+            return([])
+        lis_ = []
+        for row in range(self.baseRow + 1 , self.maxRow + 1 ):
+            v = self.ws2.cell( row, index).value
+            v = _utils.checkStr(v) 
+            if v == "":
+                return(lis_) 
+            lis_.append(v)
+        return(lis_)
 
 
     def getAllItemsCombo(self,combo):
