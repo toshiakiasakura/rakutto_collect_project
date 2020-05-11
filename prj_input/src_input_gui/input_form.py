@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit,\
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QGuiApplication, QColor
 import types 
+import inspect
 
 
 
@@ -387,21 +388,30 @@ class Ui_scrollArea():
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
     def quitProcess(self):
-        print("come3")
-        self.preFinishProcess()
-        QApplication.instance().quit()
+        print( inspect.currentframe().f_code.co_name) 
+        reply = self.preFinishProcess()
+        if reply == QMessageBox.Yes:
+            QApplication.instance().quit()
+        else:
+            pass 
 
     def closeEvent(self, event):
+        # dose not work well.
         self.preFinishProcess()
         event.accept()
 
     def preFinishProcess(self):
+        print( inspect.currentframe().f_code.co_name) 
         flag = self.checkDiffExist()
-        print("come?")
+        reply = QMessageBox.No
         if flag :
-            print("come2?")
             exp1 = "現在、変更されている変更は保存されません。よろしいでしょうか。" 
-            #QMessageBox.question(QtWidgets(), self.questionTitle,exp1, QMessageBox.Yes)
+            print(exp1)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        return(reply)
+
+
 
     def changeMacroValues(self):
         for i in range(len(self._lines) ) :
@@ -481,10 +491,9 @@ def main():
     scrollArea = QScrollArea()
     ui = Ui_scrollArea()
     ui.readData(path)
-
     ui.initialize(scrollArea)
-
     scrollArea.show()
+
     sys.exit(app.exec_())
 
 
