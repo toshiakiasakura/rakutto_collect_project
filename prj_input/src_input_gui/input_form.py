@@ -150,18 +150,15 @@ class Ui_scrollArea():
         self.lineRow.setText( str(self.row) )
         self.lineRow.editingFinished.connect(self.changeRowRelated)
 
-        self.gridLayoutTop.addWidget(self.lineRow, 0, 0, 1, 1)
 
 
         horizontalSpacerTop= QSpacerItem(50, 50, QSizePolicy.MinimumExpanding, QSizePolicy.Minimum)
-        self.gridLayoutTop.addItem(horizontalSpacerTop, 0, 1, 1, 1)
 
         # comboRef1
         self.comboRef1 = QComboBox(self.scrollAreaWidgetContents)
         self.comboRef1.setObjectName("comboRef1")
         self.comboRef1.addItems( self.colNameDic.keys() ) 
         self.comboRef1.activated[str].connect(self.changeLineRef1)        
-        self.gridLayoutTop.addWidget(self.comboRef1, 0, 2, 1, 1)
 
         # comboRef2 
         self.comboRef2 = QComboBox(self.scrollAreaWidgetContents)
@@ -169,7 +166,6 @@ class Ui_scrollArea():
         self.comboRef2.addItems( self.colNameDic.keys() ) 
         self.comboRef2.setCurrentIndex(1)
         self.comboRef2.activated[str].connect(self.changeLineRef2)        
-        self.gridLayoutTop.addWidget(self.comboRef2, 1, 2, 1, 1)
 
         # lineRef1 
         self.lineRef1 = QLineEdit(self.scrollAreaWidgetContents)
@@ -177,7 +173,6 @@ class Ui_scrollArea():
         val =  self.getValueFromColumn( self.comboRef1.currentText() ) 
         self.lineRef1.setText(val)
         self.lineRef1.setEnabled(False) 
-        self.gridLayoutTop.addWidget(self.lineRef1, 0, 3, 1, 1)
 
         # lineRef2
         self.lineRef2 = QLineEdit(self.scrollAreaWidgetContents)
@@ -185,21 +180,18 @@ class Ui_scrollArea():
         val =  self.getValueFromColumn( self.comboRef2.currentText() ) 
         self.lineRef2.setText(val)
         self.lineRef2.setEnabled(False) 
-        self.gridLayoutTop.addWidget(self.lineRef2, 1, 3, 1, 1)
 
         # comboSearch 
         self.comboSearch = QComboBox(self.scrollAreaWidgetContents)
         self.comboSearch.addItems( self.colNameDic.keys() ) 
         self.comboSearch.setObjectName("comboSearch")
         self.comboSearch.activated[str].connect(self.changeLineSearch)        
-        self.gridLayoutTop.addWidget(self.comboSearch, 0, 4, 1, 1)
 
         # lineSearch 
         self.lineSearch = QLineEdit(self.scrollAreaWidgetContents)
         self.lineSearch.setObjectName("lineSearch")
         val =  self.getValueFromColumn( self.comboSearch.currentText() ) 
         self.lineSearch.setText(val)
-        self.gridLayoutTop.addWidget(self.lineSearch, 0, 5, 1, 1)
 
         self.pushNewRow = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
@@ -208,11 +200,21 @@ class Ui_scrollArea():
         sizePolicy.setHeightForWidth(self.pushNewRow.sizePolicy().hasHeightForWidth())
         self.pushNewRow.setSizePolicy(sizePolicy)
         self.pushNewRow.setObjectName("pushNewRow")
-        self.gridLayoutTop.addWidget(self.pushNewRow, 1, 0, 1, 1)
         self.pushSearch = QPushButton(self.scrollAreaWidgetContents)
         self.pushSearch.setObjectName("pushSearch")
-        self.gridLayoutTop.addWidget(self.pushSearch, 1, 4, 1, 2)
 
+
+        # gridLayoutTop 
+        self.gridLayoutTop.addWidget(self.lineRow, 0, 0, 1, 1)
+        self.gridLayoutTop.addItem(horizontalSpacerTop, 0, 1, 1, 1)
+        self.gridLayoutTop.addWidget(self.comboRef1, 0, 2, 1, 1)
+        self.gridLayoutTop.addWidget(self.comboRef2, 1, 2, 1, 1)
+        self.gridLayoutTop.addWidget(self.lineRef1, 0, 3, 1, 1)
+        self.gridLayoutTop.addWidget(self.lineRef2, 1, 3, 1, 1)
+        self.gridLayoutTop.addWidget(self.comboSearch, 0, 4, 1, 1)
+        self.gridLayoutTop.addWidget(self.lineSearch, 0, 5, 1, 1)
+        self.gridLayoutTop.addWidget(self.pushNewRow, 1, 0, 1, 1)
+        self.gridLayoutTop.addWidget(self.pushSearch, 1, 4, 1, 2)
         self.verticalLayoutScroll.addLayout(self.gridLayoutTop)
 
     def setupScrollMiddle(self):
@@ -327,8 +329,6 @@ class Ui_scrollArea():
         self.gridLayoutBottom = QGridLayout()
         self.gridLayoutBottom.setObjectName("gridLayoutBottom")
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.gridLayoutBottom.addItem(spacerItem2, 0, 2, 1, 1)
-
 
         # label1
         self.labelSh1 = QLabel(self.scrollAreaWidgetContents)
@@ -338,7 +338,6 @@ class Ui_scrollArea():
         sizePolicy.setHeightForWidth(self.labelSh1.sizePolicy().hasHeightForWidth())
         self.labelSh1.setSizePolicy(sizePolicy)
         self.labelSh1.setObjectName("labelSh1")
-        self.gridLayoutBottom.addWidget(self.labelSh1, 0, 0, 1, 1)
 
         # label2 
         self.labelSh2 = QLabel(self.scrollAreaWidgetContents)
@@ -348,7 +347,6 @@ class Ui_scrollArea():
         sizePolicy.setHeightForWidth(self.labelSh2.sizePolicy().hasHeightForWidth())
         self.labelSh2.setSizePolicy(sizePolicy)
         self.labelSh2.setObjectName("labelSh2")
-        self.gridLayoutBottom.addWidget(self.labelSh2, 1, 0, 1, 1)
 
         # lineSh1
         self.lineSh1 = QLineEdit(self.scrollAreaWidgetContents)
@@ -361,7 +359,6 @@ class Ui_scrollArea():
         self.lineSh1.setObjectName("lineSh1")
         self.lineSh1.setText(shName1)
         self.lineSh1.setEnabled(False) 
-        self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
 
         # lineSh2 
         self.lineSh2 = QLineEdit(self.scrollAreaWidgetContents)
@@ -373,7 +370,6 @@ class Ui_scrollArea():
         self.lineSh2.setObjectName("lineSh2")
         self.lineSh2.setText(shName2)
         self.lineSh2.setEnabled(False) 
-        self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
 
         # pushButtonWrite 
         self.pushButtonWrite = QPushButton(self.scrollAreaWidgetContents)
@@ -386,7 +382,6 @@ class Ui_scrollArea():
         self.pushButtonWrite.setObjectName("pushButtonWrite")
 
         self.pushButtonWrite.clicked.connect(self.writeValues)
-        self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
 
         # pushButtonCancel
         self.pushButtonCancel = QPushButton(self.scrollAreaWidgetContents)
@@ -399,7 +394,6 @@ class Ui_scrollArea():
         self.pushButtonCancel.setObjectName("pushButtonCancel")
 
         self.pushButtonCancel.clicked.connect(self.changeRowRelated)
-        self.gridLayoutBottom.addWidget(self.pushButtonCancel, 1, 4, 1, 1)
 
 
         # pushQuit 
@@ -413,9 +407,16 @@ class Ui_scrollArea():
         self.pushQuit.setObjectName("pushQuit")
 
         self.pushQuit.clicked.connect(self.quitProcess)
+
+
+        self.gridLayoutBottom.addItem(spacerItem2, 0, 2, 1, 1)
+        self.gridLayoutBottom.addWidget(self.labelSh1, 0, 0, 1, 1)
+        self.gridLayoutBottom.addWidget(self.labelSh2, 1, 0, 1, 1)
+        self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
+        self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushButtonCancel, 1, 4, 1, 1)
         self.gridLayoutBottom.addWidget(self.pushQuit, 1, 5, 1, 1)
-
-
         self.verticalLayoutScroll.addLayout(self.gridLayoutBottom)
         self.scrollVerticalLayout.addLayout(self.verticalLayoutScroll)
 
