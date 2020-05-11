@@ -150,8 +150,6 @@ class Ui_scrollArea():
         self.lineRow.setText( str(self.row) )
         self.lineRow.editingFinished.connect(self.changeRowRelated)
 
-
-
         horizontalSpacerTop= QSpacerItem(50, 50, QSizePolicy.MinimumExpanding, QSizePolicy.Minimum)
 
         # comboRef1
@@ -419,12 +417,12 @@ class Ui_scrollArea():
     def retranslateUi(self, scrollArea):
         _translate = QtCore.QCoreApplication.translate
         scrollArea.setWindowTitle(_translate("scrollArea", "ScrollArea"))
-        self.pushNewRow.setText(_translate("scrollArea", "新規登録"))
+        self.pushNewRow.setText(_translate("scrollArea", "新規追加"))
         self.pushSearch.setText(_translate("scrollArea", "検索"))
-        self.pushButtonWrite.setText(_translate("scrollArea", "書き込み"))
+        self.pushButtonWrite.setText(_translate("scrollArea", "変更を追加"))
         self.labelSh1.setText(_translate("scrollArea", "入力先シート"))
         self.labelSh2.setText(_translate("scrollArea", "プルタブ参照シート"))
-        self.pushButtonSave.setText(_translate("scrollArea", "保存")) 
+        self.pushButtonSave.setText(_translate("scrollArea", "変更を保存")) 
         self.pushButtonCancel.setText(_translate("scrollArea", "キャンセル"))
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
