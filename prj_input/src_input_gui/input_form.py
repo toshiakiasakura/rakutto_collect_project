@@ -11,6 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QGuiApplication, QColor
 import types 
 import inspect
+import datetime
 
 
 
@@ -19,12 +20,17 @@ shName1 = "患者情報入力シート"
 shName2 = "患者プルタブシート" 
 
 tpNumeric = "数値" 
+tpDate    = "日付" 
+tpDropDown= "プルタブ"
+
 
 class Ui_scrollArea():
     def __init__(self):
         self.row = 3
         self.baseRow = 2
-        self.filter = [4,5,6]
+        self.colTypeRefRow = 1 
+        self.colTypeRefLis = [tpNumeric,tpDate ,tpDropDown ] 
+        self.filter = []
         self.questionTitle = "confirmation"
 
     def initialize(self, scrollArea):
@@ -45,6 +51,7 @@ class Ui_scrollArea():
         self.colNameDic = {}
         self.colNameDic2 = {}
         self.indNameDic = {}
+        self.colTypeDic = {}
         for i in range(1,self.maxRow + 1 ): 
             colName = self.ws1.cell(self.baseRow, i).value 
             colName = _utils.checkStr(colName)
@@ -57,11 +64,15 @@ class Ui_scrollArea():
 
         for col in range(1, self.maxColumn2 + 1) :
             v = self.ws2.cell(self.baseRow, col).value
-            v = _utils.checkStr( v ) 
+            v = _utils.checkStr(v) 
             if v in self.colNameDic.keys() :
                 self.colNameDic2[v] = col
-        
-    
+
+                tp = self.ws2.cell(self.colTypeRefRow, col).value
+                tp = _utils.checkStr(tp)
+                if tp in self.colTypeRefLis:
+                    self.colTypeDic[v] = tp
+
     def setupGUI(self,scrollArea):
         scrollArea.setObjectName("scrollArea")
         mainWidth = 1000
@@ -87,21 +98,23 @@ class Ui_scrollArea():
 
 
     def changeRowRelated(self):
-        num  = _utils.checkNumeric( self.lineRow.text() ) 
+        print( inspect.currentframe().f_code.co_name) 
+
+        num  = _utils.convertStr( self.lineRow.text(), tpNumeric  ) 
         if isinstance( num, int):
-            num += 1 
+            #num += 1 
             self.row = num
         else:
             raise Exception("not int value is inputted")
 
-        print(num)
-        print(self.ws1.max_row)
-        self.lineRow.setText(str(num) ) 
+        print(f"   row ref number : {num} , max row : {self.ws1.max_row}" )
 
         # change values 
         self.changeLineRef1( self.comboRef1.currentText() ) 
         self.changeLineRef2( self.comboRef2.currentText() ) 
         self.changeMacroValues()
+
+        self.compareAllValues()
 
     def setupGridLayoutTop(self):
         self.gridLayoutTop = QGridLayout()
@@ -226,10 +239,11 @@ class Ui_scrollArea():
         self.lineMacro.setMinimumSize(QtCore.QSize(150,0)) 
         self.lineMacro.setStyleSheet(
                 "QLineEdit { background-color : white; color:rgb(0,60,60)}")
-        self.lineMacro.colName = colName 
         self.lineMacro._same = False 
+        self.lineMacro.colName = colName
         def changeBack(selfMacro ):
-            b = self.compareValue( selfMacro.text() , selfMacro.colName ) 
+            v = selfMacro.text()
+            b = self.compareValue( v , selfMacro.colName ) 
             selfMacro._same = b
             if b:
                 selfMacro.setStyleSheet(
@@ -241,15 +255,19 @@ class Ui_scrollArea():
         self.lineMacro.changeBack = types.MethodType(changeBack,self.lineMacro)
         self.lineMacro.editingFinished.connect( self.lineMacro.changeBack )
 
-        v = self.getValueFromColumn(self.labelMacro.text() ) 
+        v = self.getValueFromColumn( colName ) 
+        print(f"setupMacros ; colName : {colName} ; value : {v} ")
         self.lineMacro.setText( v ) 
 
         self.horizontalLayoutMacro.addWidget(self.lineMacro)
 
         # comboBox setting.
         self.comboBoxMacro = QComboBox(self.scrollAreaWidgetContents_2)
+        self.lineMacro.combo = self.comboBoxMacro
+
         self.comboBoxMacro.setObjectName("comboBoxMacro")
         self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
+
         lis_ = self.getItemsFromSheet2(colName) 
         self.comboBoxMacro.addItems( lis_ ) 
         self.comboBoxMacro.colName = colName
@@ -273,6 +291,8 @@ class Ui_scrollArea():
 
         self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
         self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
+
+        self.setComboIndex(self.comboBoxMacro,v) 
 
         self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
 
@@ -404,6 +424,9 @@ class Ui_scrollArea():
         print( inspect.currentframe().f_code.co_name) 
         flag = self.checkDiffExist()
         reply = QMessageBox.No
+
+        for i in range(1,5) :
+            print(self.ws1.cell(i,3).value)
         if flag :
             exp1 = "現在、変更されている変更は保存されません。よろしいでしょうか。" 
             print(exp1)
@@ -411,18 +434,29 @@ class Ui_scrollArea():
                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         return(reply)
 
-
-
     def changeMacroValues(self):
         for i in range(len(self._lines) ) :
+            colName = self._labels[i].text()
+            v = self.getValueFromColumn( colName ) 
+
             # line setting 
-            v = self.getValueFromColumn( self._labels[i].text() ) 
             self._lines[i].setText(v)  
             # comboBox setting 
-            self._comboBoxes[i].clear()
-            self._comboBoxes[i].addItems( self._comboBoxes[i].defaultItems ) 
-            if v not in self._comboBoxes[i].defaultItems:
-                self._comboBoxes[i].insertItem(0,v)
+            combo = self._comboBoxes[i]
+            combo.clear()
+            combo.addItems( combo.defaultItems ) 
+            self.setComboIndex(combo, v) 
+
+
+    def setComboIndex(self, combo, v:str):
+            index = combo.findText(v, QtCore.Qt.MatchFixedString)
+            if index == - 1 :
+                print( inspect.currentframe().f_code.co_name) 
+                print( f"    value not found ,{combo.colName}  : '{v}';\n    index : {index} " ) 
+                combo.insertItem(0,v)
+                index = 0
+            combo.setCurrentIndex(index) 
+
 
     def checkDiffExist(self):
         flag = False
@@ -431,7 +465,6 @@ class Ui_scrollArea():
                 flag = True
                 return(flag)
         return(flag) 
-
 
     def changeLineRef1(self,s ) :
         v = self.getValueFromColumn(s)
@@ -449,11 +482,20 @@ class Ui_scrollArea():
         colInd = self.colNameDic[colName]
         origV = self.ws1.cell(self.row, colInd).value
         origV = _utils.checkStr(origV) 
+        print( inspect.currentframe().f_code.co_name) 
+        print( f"     colName : {colName};  ui : {v} ; origin : {origV}; row : {self.row} " )
         if v == origV:
             return(True)
         else:
             return(False)
 
+    def compareAllValues(self):
+        for i in range(len(self._lines) ) :
+            line = self._lines[i]
+            line._same = self.compareValue(line.text(), line.colName) 
+
+            combo = self._comboBoxes[i]
+            combo._same = self.compareValue(combo.currentText(), combo.colName)
 
     def getItemsFromSheet2(self, colName):
         index = self.colNameDic2.get(colName, None)
@@ -463,7 +505,7 @@ class Ui_scrollArea():
         for row in range(self.baseRow + 1 , self.maxRow + 1 ):
             v = self.ws2.cell( row, index).value
             v = _utils.checkStr(v) 
-            if v == "":
+            if v == _utils.nonValue:
                 return(lis_) 
             lis_.append(v)
         return(lis_)
@@ -478,12 +520,24 @@ class Ui_scrollArea():
     def getValueFromColumn(self,colName):
         colInd = self.colNameDic.get(colName ,None) 
         if colInd == None:
+            print( inspect.currentframe().f_code.co_name) 
             print("Error there is no column name") 
             v = "eeeeerrrr"
         else:
             v = self.ws1.cell(self.row,colInd).value  
+            print( inspect.currentframe().f_code.co_name) 
+            print(f"    {colName} : {v} ;type:  {type(v)}; comp :  {isinstance(v,datetime.datetime )}" )
             v = _utils.checkStr(v) 
         return(v) 
+
+    def writeValues(self):
+        for i in range(len(self._lines) ) :
+            colName = self._labels[i].text
+            colInd  = self.colNameDic[colName]
+            tp      = self.colTypeDic.get(colName,None)
+            v       = self._lines[i].value
+            v       = _utils.convertStr(v, tp)
+            self.ws1.cell(self.row, colInd).value = v 
 
 def main():
     app = QApplication(sys.argv)
