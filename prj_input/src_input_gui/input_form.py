@@ -384,6 +384,8 @@ class Ui_scrollArea():
         self.pushButtonWrite.setSizePolicy(sizePolicy)
         self.pushButtonWrite.setMinimumSize(QtCore.QSize(100, 0))
         self.pushButtonWrite.setObjectName("pushButtonWrite")
+
+        self.pushButtonWrite.clicked.connect(self.writeValues)
         self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
 
         # pushButtonCancel
@@ -444,7 +446,7 @@ class Ui_scrollArea():
     def preFinishProcess(self):
         print( inspect.currentframe().f_code.co_name) 
         flag = self.checkDiffExist()
-        reply = QMessageBox.No
+        reply = QMessageBox.Yes
 
         if flag :
             exp1 = "現在までの変更は保存されません。よろしいでしょうか。" 
@@ -545,12 +547,13 @@ class Ui_scrollArea():
 
     def writeValues(self):
         for i in range(len(self._lines) ) :
-            colName = self._labels[i].text
+            colName = self._labels[i].text()
             colInd  = self.colNameDic[colName]
             tp      = self.colTypeDic.get(colName,None)
-            v       = self._lines[i].value
+            v       = self._lines[i].text()
             v       = _utils.convertStr(v, tp)
             self.ws1.cell(self.row, colInd).value = v 
+        self.readAllValuesFromSheet()
         self.compareAllValues()
 
 def main():
