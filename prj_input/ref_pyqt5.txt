@@ -61,3 +61,6 @@ https://note.nkmk.me/python-str-num-determine/
 
 - Getting all items of QComboBox - PyQt4 (Python)
 https://stackoverflow.com/questions/7479915/getting-all-items-of-qcombobox-pyqt4-python
+
+- PyQt: How to set Combobox to Item knowing Item's text (a title)
+https://stackoverflow.com/questions/22797794/pyqt-how-to-set-combobox-to-item-knowing-items-text-a-title
