@@ -55,8 +55,10 @@ class Ui_scrollArea():
         for i in range(1,self.maxRow + 1 ): 
             colName = self.ws1.cell(self.baseRow, i).value 
             colName = _utils.checkStr(colName)
-            if colName == "" or i in self.filter:
+            if colName == _utils.nonValue or i in self.filter:
                 continue
+            if colName in self.colNameDic.keys():
+                raise Exception("Columns contain multiple same names") 
             self.colNameDic[colName] = i 
 
         for k,v in self.colNameDic.items():
