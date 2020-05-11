@@ -1,20 +1,35 @@
 import sys
+import datetime 
 
-def checkNumeric(v,conv=False):
-    if conv:
-        if isinstance(v,float):
-            return( str(v) ) 
-        else:
-            pass
+nonValue = "space"
+empty = "" 
+def convertStr(v:str,tp=None):
+    if tp == "数値" :
+        v = convert2Int(v) 
+    elif v == nonValue:
+        v  = None
     else:
-        if v.isdigit(): 
-            return(int(v)) 
-        else:
-            return(v) 
+        pass
+    return(v) 
+
+def convert2Int(v:str):
+    try:
+        return(int(v)) 
+    except:
+        return(v) 
 
 def checkStr(v):
     if v == None:
-        return("")
-    else:
-        return(str(v)) 
+        v = nonValue 
+    elif isinstance(v, datetime.datetime) :
+        v = v.strftime("%Y/%m/%d") 
+    else: 
+        # numeric values are also converted into string. 
+        v = str(v) 
+
+    return(v) 
+
+
+
+
 

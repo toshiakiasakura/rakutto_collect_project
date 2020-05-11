@@ -10,6 +10,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit,\
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QGuiApplication, QColor
 import types 
+import inspect
+import datetime
 
 
 
@@ -18,16 +20,22 @@ shName1 = "患者情報入力シート"
 shName2 = "患者プルタブシート" 
 
 tpNumeric = "数値" 
+tpDate    = "日付" 
+tpDropDown= "プルタブ"
 
-class Ui_scrollArea(object):
+
+class Ui_scrollArea():
     def __init__(self):
         self.row = 3
         self.baseRow = 2
-        self.filter = [4,5,6]
+        self.colTypeRefRow = 1 
+        self.colTypeRefLis = [tpNumeric,tpDate ,tpDropDown ] 
+        self.filter = []
+        self.questionTitle = "confirmation"
 
     def initialize(self, scrollArea):
         self.setupGUI(scrollArea)
-
+        self.readAllValuesFromSheet()
 
     def readData(self, path):
         self.wb = load_workbook(path)
@@ -35,20 +43,39 @@ class Ui_scrollArea(object):
         self.ws2 = self.wb[shName2] 
 
         self.maxRow = self.ws1.max_row
+        self.maxRow2 = self.ws2.max_row
         self.maxColumn = self.ws1.max_column
+        self.maxColumn2 = self.ws2.max_column
 
         # set colNameDic 
         self.colNameDic = {}
+        self.colNameDic2 = {}
         self.indNameDic = {}
+        self.colTypeDic = {}
         for i in range(1,self.maxRow + 1 ): 
             colName = self.ws1.cell(self.baseRow, i).value 
             colName = _utils.checkStr(colName)
-            if colName == "" or i in self.filter:
+            if colName == _utils.nonValue or i in self.filter:
                 continue
+            if colName in self.colNameDic.keys():
+                raise Exception(f"{shName1} には、複数の同じ名称のカラムがあります。") 
             self.colNameDic[colName] = i 
 
         for k,v in self.colNameDic.items():
             self.indNameDic[v] = k 
+
+        for col in range(1, self.maxColumn2 + 1) :
+            v = self.ws2.cell(self.baseRow, col).value
+            v = _utils.checkStr(v) 
+            if v in self.colNameDic.keys() :
+                if v in self.colNameDic2.keys():
+                    raise Exception(f"{shName2} には、複数の同じ名称のカラムがあります。")
+                self.colNameDic2[v] = col
+
+                tp = self.ws2.cell(self.colTypeRefRow, col).value
+                tp = _utils.checkStr(tp)
+                if tp in self.colTypeRefLis:
+                    self.colTypeDic[v] = tp
 
     def setupGUI(self,scrollArea):
         scrollArea.setObjectName("scrollArea")
@@ -73,23 +100,38 @@ class Ui_scrollArea(object):
 
         QtCore.QMetaObject.connectSlotsByName(scrollArea)
 
-
     def changeRowRelated(self):
-        num  = _utils.checkNumeric( self.lineRow.text() ) 
+        flag = self.checkDiffExist()
+        if flag :
+            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
+            print(exp1)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No :
+                return()
+
+        self.readAllValuesFromSheet()
+
+
+
+    def readAllValuesFromSheet(self):
+        print( inspect.currentframe().f_code.co_name) 
+
+        num  = _utils.convertStr( self.lineRow.text(), tpNumeric  ) 
         if isinstance( num, int):
-            num += 1 
+            #num += 1 
             self.row = num
         else:
             raise Exception("not int value is inputted")
 
-        print(num)
-        print(self.ws1.max_row)
-        self.lineRow.setText(str(num) ) 
+        print(f"   row ref number : {num} , max row : {self.ws1.max_row}" )
 
         # change values 
         self.changeLineRef1( self.comboRef1.currentText() ) 
         self.changeLineRef2( self.comboRef2.currentText() ) 
         self.changeMacroValues()
+
+        self.compareAllValues()
 
     def setupGridLayoutTop(self):
         self.gridLayoutTop = QGridLayout()
@@ -108,18 +150,13 @@ class Ui_scrollArea(object):
         self.lineRow.setText( str(self.row) )
         self.lineRow.editingFinished.connect(self.changeRowRelated)
 
-        self.gridLayoutTop.addWidget(self.lineRow, 0, 0, 1, 1)
-
-
         horizontalSpacerTop= QSpacerItem(50, 50, QSizePolicy.MinimumExpanding, QSizePolicy.Minimum)
-        self.gridLayoutTop.addItem(horizontalSpacerTop, 0, 1, 1, 1)
 
         # comboRef1
         self.comboRef1 = QComboBox(self.scrollAreaWidgetContents)
         self.comboRef1.setObjectName("comboRef1")
         self.comboRef1.addItems( self.colNameDic.keys() ) 
         self.comboRef1.activated[str].connect(self.changeLineRef1)        
-        self.gridLayoutTop.addWidget(self.comboRef1, 0, 2, 1, 1)
 
         # comboRef2 
         self.comboRef2 = QComboBox(self.scrollAreaWidgetContents)
@@ -127,7 +164,6 @@ class Ui_scrollArea(object):
         self.comboRef2.addItems( self.colNameDic.keys() ) 
         self.comboRef2.setCurrentIndex(1)
         self.comboRef2.activated[str].connect(self.changeLineRef2)        
-        self.gridLayoutTop.addWidget(self.comboRef2, 1, 2, 1, 1)
 
         # lineRef1 
         self.lineRef1 = QLineEdit(self.scrollAreaWidgetContents)
@@ -135,7 +171,6 @@ class Ui_scrollArea(object):
         val =  self.getValueFromColumn( self.comboRef1.currentText() ) 
         self.lineRef1.setText(val)
         self.lineRef1.setEnabled(False) 
-        self.gridLayoutTop.addWidget(self.lineRef1, 0, 3, 1, 1)
 
         # lineRef2
         self.lineRef2 = QLineEdit(self.scrollAreaWidgetContents)
@@ -143,21 +178,18 @@ class Ui_scrollArea(object):
         val =  self.getValueFromColumn( self.comboRef2.currentText() ) 
         self.lineRef2.setText(val)
         self.lineRef2.setEnabled(False) 
-        self.gridLayoutTop.addWidget(self.lineRef2, 1, 3, 1, 1)
 
         # comboSearch 
         self.comboSearch = QComboBox(self.scrollAreaWidgetContents)
         self.comboSearch.addItems( self.colNameDic.keys() ) 
         self.comboSearch.setObjectName("comboSearch")
         self.comboSearch.activated[str].connect(self.changeLineSearch)        
-        self.gridLayoutTop.addWidget(self.comboSearch, 0, 4, 1, 1)
 
         # lineSearch 
         self.lineSearch = QLineEdit(self.scrollAreaWidgetContents)
         self.lineSearch.setObjectName("lineSearch")
         val =  self.getValueFromColumn( self.comboSearch.currentText() ) 
         self.lineSearch.setText(val)
-        self.gridLayoutTop.addWidget(self.lineSearch, 0, 5, 1, 1)
 
         self.pushNewRow = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
@@ -166,11 +198,21 @@ class Ui_scrollArea(object):
         sizePolicy.setHeightForWidth(self.pushNewRow.sizePolicy().hasHeightForWidth())
         self.pushNewRow.setSizePolicy(sizePolicy)
         self.pushNewRow.setObjectName("pushNewRow")
-        self.gridLayoutTop.addWidget(self.pushNewRow, 1, 0, 1, 1)
         self.pushSearch = QPushButton(self.scrollAreaWidgetContents)
         self.pushSearch.setObjectName("pushSearch")
-        self.gridLayoutTop.addWidget(self.pushSearch, 1, 4, 1, 2)
 
+
+        # gridLayoutTop 
+        self.gridLayoutTop.addWidget(self.lineRow, 0, 0, 1, 1)
+        self.gridLayoutTop.addItem(horizontalSpacerTop, 0, 1, 1, 1)
+        self.gridLayoutTop.addWidget(self.comboRef1, 0, 2, 1, 1)
+        self.gridLayoutTop.addWidget(self.comboRef2, 1, 2, 1, 1)
+        self.gridLayoutTop.addWidget(self.lineRef1, 0, 3, 1, 1)
+        self.gridLayoutTop.addWidget(self.lineRef2, 1, 3, 1, 1)
+        self.gridLayoutTop.addWidget(self.comboSearch, 0, 4, 1, 1)
+        self.gridLayoutTop.addWidget(self.lineSearch, 0, 5, 1, 1)
+        self.gridLayoutTop.addWidget(self.pushNewRow, 1, 0, 1, 1)
+        self.gridLayoutTop.addWidget(self.pushSearch, 1, 4, 1, 2)
         self.verticalLayoutScroll.addLayout(self.gridLayoutTop)
 
     def setupScrollMiddle(self):
@@ -207,22 +249,6 @@ class Ui_scrollArea(object):
         self.labelMacro.setText( colName )
         self.horizontalLayoutMacro.addWidget(self.labelMacro)
 
-        # comboBox setting.
-        self.comboBoxMacro = QComboBox(self.scrollAreaWidgetContents_2)
-        self.comboBoxMacro.setObjectName("comboBoxMacro")
-        self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
-        self.comboBoxMacro.addItems( ["a","b","c"] ) 
-        # initial color 
-        self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,0,0);")
-
-        def changeBack(self,s):
-            ''' if compare with originla data and find difference, 
-            change color '''
-            self.setStyleSheet("background-color: rgb(255,255,0);color:rgb(0,0,0);")
-        self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
-        self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
-
-        self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
 
         # lineEdit setting. 
         self.lineMacro = QLineEdit(self.scrollAreaWidgetContents_2)
@@ -230,25 +256,54 @@ class Ui_scrollArea(object):
         self.lineMacro.setMinimumSize(QtCore.QSize(150,0)) 
         self.lineMacro.setStyleSheet(
                 "QLineEdit { background-color : white; color:rgb(0,60,60)}")
-        self.lineMacro.colName = colName 
-        def changeBack(selfMacro ):
-            b = self.compareValue( selfMacro.text() , selfMacro.colName ) 
-            if b:
-                selfMacro.setStyleSheet(
-                "QLineEdit { background-color : white; color:rgb(0,60,60)}")
-            else:
-                selfMacro.setStyleSheet(
-                "QLineEdit { background-color : yellow ; color:rgb(0,60,60)}")
-        self.lineMacro.changeBack = types.MethodType(changeBack,self.lineMacro)
-        self.lineMacro.editingFinished.connect( self.lineMacro.changeBack )
+        self.lineMacro._same = False 
+        self.lineMacro.colName = colName
+        def changeBackLine(obj:object):
+            v = obj.text()
+            b = self.compareValue( v , obj.colName ) 
+            obj._same = b
+            self.changeColor(obj, b, v)
 
-        v = self.getValueFromColumn(self.labelMacro.text() ) 
+        self.lineMacro.changeBackLine = types.MethodType(changeBackLine,self.lineMacro)
+        self.lineMacro.editingFinished.connect( self.lineMacro.changeBackLine )
+
+        v = self.getValueFromColumn( colName ) 
         self.lineMacro.setText( v ) 
 
         self.horizontalLayoutMacro.addWidget(self.lineMacro)
 
+        # comboBox setting.
+        self.comboBoxMacro = QComboBox(self.scrollAreaWidgetContents_2)
+        self.lineMacro.combo = self.comboBoxMacro
+
+        self.comboBoxMacro.setObjectName("comboBoxMacro")
+        self.comboBoxMacro.setMinimumSize(QtCore.QSize(150,0)) 
+
+        lis_ = self.getItemsFromSheet2(colName) 
+        self.comboBoxMacro.addItems( lis_ ) 
+        self.comboBoxMacro.colName = colName
+        self.comboBoxMacro.defaultItems = lis_ 
+        self.comboBoxMacro.line = self.lineMacro
+        # initial color 
+        self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,0,0);")
+
+        def changeBackCombo(obj):
+            v = obj.currentText()
+            obj.line.setText( v ) 
+
+            b = self.compareValue( v , obj.colName ) 
+            obj.line._same = b
+            self.changeColor(obj, b, v)
+
+        self.comboBoxMacro.changeBackCombo = types.MethodType(changeBackCombo,self.comboBoxMacro)
+        self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBackCombo)
+
+        self.setComboIndex(self.comboBoxMacro,v) 
+
+        self.horizontalLayoutMacro.addWidget(self.comboBoxMacro)
+
+        # spacer  setting 
         horizontalSpacerMacro = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        # set object. 
         self.horizontalLayoutMacro.addItem(horizontalSpacerMacro)
         self.verticalLayout.addLayout(self.horizontalLayoutMacro)
         # add each objects. 
@@ -262,16 +317,6 @@ class Ui_scrollArea(object):
         self.gridLayoutBottom = QGridLayout()
         self.gridLayoutBottom.setObjectName("gridLayoutBottom")
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.gridLayoutBottom.addItem(spacerItem2, 0, 2, 1, 1)
-        self.pushButtonWrite = QPushButton(self.scrollAreaWidgetContents)
-        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButtonWrite.sizePolicy().hasHeightForWidth())
-        self.pushButtonWrite.setSizePolicy(sizePolicy)
-        self.pushButtonWrite.setMinimumSize(QtCore.QSize(100, 0))
-        self.pushButtonWrite.setObjectName("pushButtonWrite")
-        self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
 
         # label1
         self.labelSh1 = QLabel(self.scrollAreaWidgetContents)
@@ -281,7 +326,6 @@ class Ui_scrollArea(object):
         sizePolicy.setHeightForWidth(self.labelSh1.sizePolicy().hasHeightForWidth())
         self.labelSh1.setSizePolicy(sizePolicy)
         self.labelSh1.setObjectName("labelSh1")
-        self.gridLayoutBottom.addWidget(self.labelSh1, 0, 0, 1, 1)
 
         # label2 
         self.labelSh2 = QLabel(self.scrollAreaWidgetContents)
@@ -291,7 +335,6 @@ class Ui_scrollArea(object):
         sizePolicy.setHeightForWidth(self.labelSh2.sizePolicy().hasHeightForWidth())
         self.labelSh2.setSizePolicy(sizePolicy)
         self.labelSh2.setObjectName("labelSh2")
-        self.gridLayoutBottom.addWidget(self.labelSh2, 1, 0, 1, 1)
 
         # lineSh1
         self.lineSh1 = QLineEdit(self.scrollAreaWidgetContents)
@@ -304,7 +347,6 @@ class Ui_scrollArea(object):
         self.lineSh1.setObjectName("lineSh1")
         self.lineSh1.setText(shName1)
         self.lineSh1.setEnabled(False) 
-        self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
 
         # lineSh2 
         self.lineSh2 = QLineEdit(self.scrollAreaWidgetContents)
@@ -316,9 +358,20 @@ class Ui_scrollArea(object):
         self.lineSh2.setObjectName("lineSh2")
         self.lineSh2.setText(shName2)
         self.lineSh2.setEnabled(False) 
-        self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
 
+        # pushButtonWrite 
+        self.pushButtonWrite = QPushButton(self.scrollAreaWidgetContents)
+        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pushButtonWrite.sizePolicy().hasHeightForWidth())
+        self.pushButtonWrite.setSizePolicy(sizePolicy)
+        self.pushButtonWrite.setMinimumSize(QtCore.QSize(100, 0))
+        self.pushButtonWrite.setObjectName("pushButtonWrite")
 
+        self.pushButtonWrite.clicked.connect(self.writeValues)
+
+        # pushButtonCancel
         self.pushButtonCancel = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -327,8 +380,14 @@ class Ui_scrollArea(object):
         self.pushButtonCancel.setSizePolicy(sizePolicy)
         self.pushButtonCancel.setMinimumSize(QtCore.QSize(100, 0))
         self.pushButtonCancel.setObjectName("pushButtonCancel")
-        self.gridLayoutBottom.addWidget(self.pushButtonCancel, 1, 4, 1, 1)
 
+        self.pushButtonCancel.clicked.connect(self.changeRowRelated)
+
+        # pushButtonSave
+        self.pushButtonSave= QPushButton(self.scrollAreaWidgetContents)
+        self.pushButtonSave.setMinimumSize(QtCore.QSize(100, 0))
+        self.pushButtonSave.setObjectName("pushButtonSave")
+        self.pushButtonSave.clicked.connect(self.saveWorkBook)
 
         # pushQuit 
         self.pushQuit = QPushButton(self.scrollAreaWidgetContents)
@@ -341,50 +400,112 @@ class Ui_scrollArea(object):
         self.pushQuit.setObjectName("pushQuit")
 
         self.pushQuit.clicked.connect(self.quitProcess)
+
+
+        self.gridLayoutBottom.addItem(spacerItem2, 0, 2, 1, 1)
+        self.gridLayoutBottom.addWidget(self.labelSh1, 0, 0, 1, 1)
+        self.gridLayoutBottom.addWidget(self.labelSh2, 1, 0, 1, 1)
+        self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
+        self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushButtonSave, 0, 5, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushButtonCancel, 1, 4, 1, 1)
         self.gridLayoutBottom.addWidget(self.pushQuit, 1, 5, 1, 1)
-
-
         self.verticalLayoutScroll.addLayout(self.gridLayoutBottom)
         self.scrollVerticalLayout.addLayout(self.verticalLayoutScroll)
 
     def retranslateUi(self, scrollArea):
         _translate = QtCore.QCoreApplication.translate
         scrollArea.setWindowTitle(_translate("scrollArea", "ScrollArea"))
-        self.pushNewRow.setText(_translate("scrollArea", "新規登録"))
+        self.pushNewRow.setText(_translate("scrollArea", "新規追加"))
         self.pushSearch.setText(_translate("scrollArea", "検索"))
-        self.pushButtonWrite.setText(_translate("scrollArea", "書き込み"))
+        self.pushButtonWrite.setText(_translate("scrollArea", "変更を追加"))
         self.labelSh1.setText(_translate("scrollArea", "入力先シート"))
         self.labelSh2.setText(_translate("scrollArea", "プルタブ参照シート"))
+        self.pushButtonSave.setText(_translate("scrollArea", "変更を保存")) 
         self.pushButtonCancel.setText(_translate("scrollArea", "キャンセル"))
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
     def quitProcess(self):
-        # preFinishProcess()
-        QApplication.instance().quit()
+        print( inspect.currentframe().f_code.co_name) 
+        reply = self.preFinishProcess()
+        if reply == QMessageBox.Yes:
+            QApplication.instance().quit()
+        else:
+            pass 
 
     def closeEvent(self, event):
-        # preFinishProcess()
+        # dose not work well.
+        self.preFinishProcess()
         event.accept()
+
+    def preFinishProcess(self):
+        print( inspect.currentframe().f_code.co_name) 
+        flag = self.checkDiffExist()
+        reply = QMessageBox.Yes
+
+        if flag :
+            exp1 = "現在までの変更は保存されません。よろしいでしょうか。" 
+            print(exp1)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        return(reply)
 
     def changeMacroValues(self):
         for i in range(len(self._lines) ) :
-            v = self.getValueFromColumn( self._labels[i].text() ) 
+            colName = self._labels[i].text()
+            v = self.getValueFromColumn( colName ) 
+
+            # line setting 
             self._lines[i].setText(v)  
+            # comboBox setting 
+            combo = self._comboBoxes[i]
+            combo.clear()
+            combo.addItems( combo.defaultItems ) 
+            self.setComboIndex(combo, v) 
 
 
-    def changeLineRef1(self,s ) :
+    def setComboIndex(self, combo, v:str):
+            index = combo.findText(v, QtCore.Qt.MatchFixedString)
+            if index == - 1 :
+                combo.insertItem(0,v)
+                index = 0
+            combo.setCurrentIndex(index) 
+
+
+    def checkDiffExist(self):
+        flag = False
+        for i in range( len(self._lines) ) :
+            if not self._lines[i]._same:
+                flag = True
+                return(flag)
+        return(flag) 
+
+    def changeLineRef1(self,s:str ) :
         v = self.getValueFromColumn(s)
         self.lineRef1.setText(v) 
 
-    def changeLineRef2(self,s ) :
+    def changeLineRef2(self,s:str ) :
         v = self.getValueFromColumn(s)
         self.lineRef2.setText(v) 
 
-    def changeLineSearch(self, s):
+    def changeLineSearch(self, s:str):
         v = self.getValueFromColumn(s)
         self.lineSearch.setText(v)
 
-    def compareValue(self, v,colName):
+    def changeColor(self,obj:object, compBool:bool, value:str):
+        if value == _utils.nonValue:  
+            obj.setStyleSheet(
+            "background-color : rgb(230,230,255) ; color:rgb(0,60,60)")
+        elif compBool:
+            obj.setStyleSheet(
+            "background-color : white ; color:rgb(0,60,60)")
+        else:
+            obj.setStyleSheet(
+            "background-color : yellow ; color:rgb(0,60,60)")
+        
+
+    def compareValue(self, v:str,colName):
         colInd = self.colNameDic[colName]
         origV = self.ws1.cell(self.row, colInd).value
         origV = _utils.checkStr(origV) 
@@ -393,6 +514,26 @@ class Ui_scrollArea(object):
         else:
             return(False)
 
+    def compareAllValues(self):
+        for i in range(len(self._lines) ) :
+            line = self._lines[i]
+            line.changeBackLine()
+
+            combo = self._comboBoxes[i]
+            combo.changeBackCombo()
+
+    def getItemsFromSheet2(self, colName):
+        index = self.colNameDic2.get(colName, None)
+        if index == None:
+            return([])
+        lis_ = []
+        for row in range(self.baseRow + 1 , self.maxRow + 1 ):
+            v = self.ws2.cell( row, index).value
+            v = _utils.checkStr(v) 
+            if v == _utils.nonValue:
+                return(lis_) 
+            lis_.append(v)
+        return(lis_)
 
 
     def getAllItemsCombo(self,combo):
@@ -404,6 +545,7 @@ class Ui_scrollArea(object):
     def getValueFromColumn(self,colName):
         colInd = self.colNameDic.get(colName ,None) 
         if colInd == None:
+            print( inspect.currentframe().f_code.co_name) 
             print("Error there is no column name") 
             v = "eeeeerrrr"
         else:
@@ -411,16 +553,30 @@ class Ui_scrollArea(object):
             v = _utils.checkStr(v) 
         return(v) 
 
+    def writeValues(self):
+        for i in range(len(self._lines) ) :
+            colName = self._labels[i].text()
+            colInd  = self.colNameDic[colName]
+            tp      = self.colTypeDic.get(colName,None)
+            v       = self._lines[i].text()
+            v       = _utils.convertStr(v, tp)
+            self.ws1.cell(self.row, colInd).value = v 
+        self.readAllValuesFromSheet()
+        self.compareAllValues()
+
+    def saveWorkBook(self):
+        pathOutput = path[:-5] + "_temp.xlsx"
+        self.wb.save(pathOutput) 
+
 def main():
     app = QApplication(sys.argv)
 
     scrollArea = QScrollArea()
     ui = Ui_scrollArea()
     ui.readData(path)
-
     ui.initialize(scrollArea)
-
     scrollArea.show()
+
     sys.exit(app.exec_())
 
 
