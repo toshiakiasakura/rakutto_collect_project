@@ -109,7 +109,7 @@ class Ui_scrollArea():
                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.No :
                 return()
-                
+
         self.readAllValuesFromSheet()
 
 
@@ -328,15 +328,7 @@ class Ui_scrollArea():
         self.gridLayoutBottom.setObjectName("gridLayoutBottom")
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.gridLayoutBottom.addItem(spacerItem2, 0, 2, 1, 1)
-        self.pushButtonWrite = QPushButton(self.scrollAreaWidgetContents)
-        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButtonWrite.sizePolicy().hasHeightForWidth())
-        self.pushButtonWrite.setSizePolicy(sizePolicy)
-        self.pushButtonWrite.setMinimumSize(QtCore.QSize(100, 0))
-        self.pushButtonWrite.setObjectName("pushButtonWrite")
-        self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
+
 
         # label1
         self.labelSh1 = QLabel(self.scrollAreaWidgetContents)
@@ -383,7 +375,18 @@ class Ui_scrollArea():
         self.lineSh2.setEnabled(False) 
         self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
 
+        # pushButtonWrite 
+        self.pushButtonWrite = QPushButton(self.scrollAreaWidgetContents)
+        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pushButtonWrite.sizePolicy().hasHeightForWidth())
+        self.pushButtonWrite.setSizePolicy(sizePolicy)
+        self.pushButtonWrite.setMinimumSize(QtCore.QSize(100, 0))
+        self.pushButtonWrite.setObjectName("pushButtonWrite")
+        self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
 
+        # pushButtonCancel
         self.pushButtonCancel = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -548,6 +551,7 @@ class Ui_scrollArea():
             v       = self._lines[i].value
             v       = _utils.convertStr(v, tp)
             self.ws1.cell(self.row, colInd).value = v 
+        self.compareAllValues()
 
 def main():
     app = QApplication(sys.argv)
