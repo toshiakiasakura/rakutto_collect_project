@@ -1,9 +1,9 @@
 import sys
 import datetime 
 
-nonValue = "space"
+nonValue = " "
 empty = "" 
-def convertStr(v:str,tp=None):
+def convertFromStr(v:str,tp=None):
     if tp == "数値" :
         v = convert2Int(v) 
     elif v == nonValue:
@@ -18,7 +18,7 @@ def convert2Int(v:str):
     except:
         return(v) 
 
-def checkStr(v):
+def convert2Str(v):
     if v == None:
         v = nonValue 
     elif isinstance(v, datetime.datetime) :

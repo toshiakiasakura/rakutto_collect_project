@@ -28,6 +28,7 @@ class Ui_scrollArea():
     def __init__(self):
         self.row = 3
         self.baseRow = 2
+        self.baseCol = 1 
         self.colTypeRefRow = 1 
         self.colTypeRefLis = [tpNumeric,tpDate ,tpDropDown ] 
         self.filter = []
@@ -44,6 +45,7 @@ class Ui_scrollArea():
 
         self.maxRow = self.ws1.max_row
         self.maxRow2 = self.ws2.max_row
+        self.maxBaseRow = self.baseRow
         self.maxColumn = self.ws1.max_column
         self.maxColumn2 = self.ws2.max_column
 
@@ -52,28 +54,37 @@ class Ui_scrollArea():
         self.colNameDic2 = {}
         self.indNameDic = {}
         self.colTypeDic = {}
-        for i in range(1,self.maxRow + 1 ): 
-            colName = self.ws1.cell(self.baseRow, i).value 
-            colName = _utils.checkStr(colName)
-            if colName == _utils.nonValue or i in self.filter:
+        for col in range(1,self.maxColumn + 1 ): 
+            colName = self.ws1.cell(self.baseRow, col).value 
+            colName = _utils.convert2Str(colName)
+            if colName == _utils.nonValue or col in self.filter:
                 continue
             if colName in self.colNameDic.keys():
                 raise Exception(f"{shName1} には、複数の同じ名称のカラムがあります。") 
-            self.colNameDic[colName] = i 
+            self.colNameDic[colName] = col 
+
+        for row in range(self.maxRow, self.baseRow,-1) :
+            v = self.ws1.cell(row, self.baseCol).value 
+            v = _utils.convert2Str(v) 
+            if v == _utils.nonValue or v == _utils.empty:
+                pass
+            else:
+                self.maxBaseRow = row
+                break
 
         for k,v in self.colNameDic.items():
             self.indNameDic[v] = k 
 
         for col in range(1, self.maxColumn2 + 1) :
             v = self.ws2.cell(self.baseRow, col).value
-            v = _utils.checkStr(v) 
+            v = _utils.convert2Str(v) 
             if v in self.colNameDic.keys() :
                 if v in self.colNameDic2.keys():
                     raise Exception(f"{shName2} には、複数の同じ名称のカラムがあります。")
                 self.colNameDic2[v] = col
 
                 tp = self.ws2.cell(self.colTypeRefRow, col).value
-                tp = _utils.checkStr(tp)
+                tp = _utils.convert2Str(tp)
                 if tp in self.colTypeRefLis:
                     self.colTypeDic[v] = tp
 
@@ -117,7 +128,7 @@ class Ui_scrollArea():
     def readAllValuesFromSheet(self):
         print( inspect.currentframe().f_code.co_name) 
 
-        num  = _utils.convertStr( self.lineRow.text(), tpNumeric  ) 
+        num  = _utils.convertFromStr( self.lineRow.text(), tpNumeric  ) 
         if isinstance( num, int):
             #num += 1 
             self.row = num
@@ -199,6 +210,7 @@ class Ui_scrollArea():
         self.pushNewRow.setSizePolicy(sizePolicy)
         self.pushNewRow.setObjectName("pushNewRow")
         self.pushSearch = QPushButton(self.scrollAreaWidgetContents)
+        self.pushSearch.clicked.connect(self.findValue)
         self.pushSearch.setObjectName("pushSearch")
 
 
@@ -249,7 +261,6 @@ class Ui_scrollArea():
         self.labelMacro.setText( colName )
         self.horizontalLayoutMacro.addWidget(self.labelMacro)
 
-
         # lineEdit setting. 
         self.lineMacro = QLineEdit(self.scrollAreaWidgetContents_2)
         self.lineMacro.setObjectName("lineMacro")
@@ -289,9 +300,9 @@ class Ui_scrollArea():
 
         def changeBackCombo(obj):
             v = obj.currentText()
-            obj.line.setText( v ) 
+            obj.line.setText(v) 
 
-            b = self.compareValue( v , obj.colName ) 
+            b = self.compareValue( v, obj.colName) 
             obj.line._same = b
             self.changeColor(obj, b, v)
 
@@ -306,6 +317,14 @@ class Ui_scrollArea():
         horizontalSpacerMacro = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayoutMacro.addItem(horizontalSpacerMacro)
         self.verticalLayout.addLayout(self.horizontalLayoutMacro)
+
+        # visible setting 
+        tp = self.colTypeDic.get(colName, None)
+        if tp == tpDropDown: 
+            self.lineMacro.setVisible(False)
+        else:
+            self.comboBoxMacro.setVisible(False)
+
         # add each objects. 
         self._horizontals.append(self.horizontalLayoutMacro)
         self._labels.append(self.labelMacro)
@@ -359,35 +378,35 @@ class Ui_scrollArea():
         self.lineSh2.setText(shName2)
         self.lineSh2.setEnabled(False) 
 
-        # pushButtonWrite 
-        self.pushButtonWrite = QPushButton(self.scrollAreaWidgetContents)
+        # pushWrite 
+        self.pushWrite = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButtonWrite.sizePolicy().hasHeightForWidth())
-        self.pushButtonWrite.setSizePolicy(sizePolicy)
-        self.pushButtonWrite.setMinimumSize(QtCore.QSize(100, 0))
-        self.pushButtonWrite.setObjectName("pushButtonWrite")
+        sizePolicy.setHeightForWidth(self.pushWrite.sizePolicy().hasHeightForWidth())
+        self.pushWrite.setSizePolicy(sizePolicy)
+        self.pushWrite.setMinimumSize(QtCore.QSize(100, 0))
+        self.pushWrite.setObjectName("pushWrite")
 
-        self.pushButtonWrite.clicked.connect(self.writeValues)
+        self.pushWrite.clicked.connect(self.writeValues)
 
-        # pushButtonCancel
-        self.pushButtonCancel = QPushButton(self.scrollAreaWidgetContents)
+        # pushCancel
+        self.pushCancel = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButtonCancel.sizePolicy().hasHeightForWidth())
-        self.pushButtonCancel.setSizePolicy(sizePolicy)
-        self.pushButtonCancel.setMinimumSize(QtCore.QSize(100, 0))
-        self.pushButtonCancel.setObjectName("pushButtonCancel")
+        sizePolicy.setHeightForWidth(self.pushCancel.sizePolicy().hasHeightForWidth())
+        self.pushCancel.setSizePolicy(sizePolicy)
+        self.pushCancel.setMinimumSize(QtCore.QSize(100, 0))
+        self.pushCancel.setObjectName("pushCancel")
 
-        self.pushButtonCancel.clicked.connect(self.changeRowRelated)
+        self.pushCancel.clicked.connect(self.changeRowRelated)
 
-        # pushButtonSave
-        self.pushButtonSave= QPushButton(self.scrollAreaWidgetContents)
-        self.pushButtonSave.setMinimumSize(QtCore.QSize(100, 0))
-        self.pushButtonSave.setObjectName("pushButtonSave")
-        self.pushButtonSave.clicked.connect(self.saveWorkBook)
+        # pushSave
+        self.pushSave= QPushButton(self.scrollAreaWidgetContents)
+        self.pushSave.setMinimumSize(QtCore.QSize(100, 0))
+        self.pushSave.setObjectName("pushSave")
+        self.pushSave.clicked.connect(self.saveWorkBook)
 
         # pushQuit 
         self.pushQuit = QPushButton(self.scrollAreaWidgetContents)
@@ -407,9 +426,9 @@ class Ui_scrollArea():
         self.gridLayoutBottom.addWidget(self.labelSh2, 1, 0, 1, 1)
         self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
         self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
-        self.gridLayoutBottom.addWidget(self.pushButtonSave, 0, 5, 1, 1)
-        self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
-        self.gridLayoutBottom.addWidget(self.pushButtonCancel, 1, 4, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushSave, 0, 5, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushWrite, 1, 3, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushCancel, 1, 4, 1, 1)
         self.gridLayoutBottom.addWidget(self.pushQuit, 1, 5, 1, 1)
         self.verticalLayoutScroll.addLayout(self.gridLayoutBottom)
         self.scrollVerticalLayout.addLayout(self.verticalLayoutScroll)
@@ -419,11 +438,11 @@ class Ui_scrollArea():
         scrollArea.setWindowTitle(_translate("scrollArea", "ScrollArea"))
         self.pushNewRow.setText(_translate("scrollArea", "新規追加"))
         self.pushSearch.setText(_translate("scrollArea", "検索"))
-        self.pushButtonWrite.setText(_translate("scrollArea", "変更を追加"))
+        self.pushWrite.setText(_translate("scrollArea", "変更を追加"))
         self.labelSh1.setText(_translate("scrollArea", "入力先シート"))
         self.labelSh2.setText(_translate("scrollArea", "プルタブ参照シート"))
-        self.pushButtonSave.setText(_translate("scrollArea", "変更を保存")) 
-        self.pushButtonCancel.setText(_translate("scrollArea", "キャンセル"))
+        self.pushSave.setText(_translate("scrollArea", "変更を保存")) 
+        self.pushCancel.setText(_translate("scrollArea", "キャンセル"))
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
     def quitProcess(self):
@@ -466,11 +485,11 @@ class Ui_scrollArea():
 
 
     def setComboIndex(self, combo, v:str):
-            index = combo.findText(v, QtCore.Qt.MatchFixedString)
-            if index == - 1 :
-                combo.insertItem(0,v)
-                index = 0
-            combo.setCurrentIndex(index) 
+        index = combo.findText(v, QtCore.Qt.MatchFixedString)
+        if index == - 1 :
+            combo.insertItem(0,v)
+            index = 0
+        combo.setCurrentIndex(index) 
 
 
     def checkDiffExist(self):
@@ -481,11 +500,11 @@ class Ui_scrollArea():
                 return(flag)
         return(flag) 
 
-    def changeLineRef1(self,s:str ) :
+    def changeLineRef1(self, s:str) :
         v = self.getValueFromColumn(s)
         self.lineRef1.setText(v) 
 
-    def changeLineRef2(self,s:str ) :
+    def changeLineRef2(self, s:str) :
         v = self.getValueFromColumn(s)
         self.lineRef2.setText(v) 
 
@@ -494,21 +513,21 @@ class Ui_scrollArea():
         self.lineSearch.setText(v)
 
     def changeColor(self,obj:object, compBool:bool, value:str):
-        if value == _utils.nonValue:  
+        if value == _utils.nonValue or value == _utils.empty:  
             obj.setStyleSheet(
             "background-color : rgb(230,230,255) ; color:rgb(0,60,60)")
         elif compBool:
             obj.setStyleSheet(
-            "background-color : white ; color:rgb(0,60,60)")
+            "background-color : rgb(255,255,255); color:rgb(0,60,60)")
         else:
             obj.setStyleSheet(
             "background-color : yellow ; color:rgb(0,60,60)")
         
 
-    def compareValue(self, v:str,colName):
+    def compareValue(self, v:str, colName):
         colInd = self.colNameDic[colName]
         origV = self.ws1.cell(self.row, colInd).value
-        origV = _utils.checkStr(origV) 
+        origV = _utils.convert2Str(origV) 
         if v == origV:
             return(True)
         else:
@@ -522,6 +541,55 @@ class Ui_scrollArea():
             combo = self._comboBoxes[i]
             combo.changeBackCombo()
 
+    def findValue(self) :
+        flag = self.checkDiffExist()
+        if flag :
+            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
+            print(exp1)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No :
+                return()
+        self.readAllValuesFromSheet()            
+
+        # find part.
+        searchV = self.lineSearch.text()
+        colName = self.comboSearch.currentText()
+        colInd  = self.colNameDic[colName]
+            
+        colNameRef1 = self.comboRef1.currentText()
+        colNameRef2 = self.comboRef2.currentText()
+        colIndRef1 = self.colNameDic[ colNameRef1 ]
+        colIndRef2 = self.colNameDic[ colNameRef2 ]
+
+        findN = 0 
+        findExp = f" 行 ,  {colNameRef1} ,  {colNameRef2} \n"
+        for row in range(self.baseRow + 1 ,self.maxRow):
+            v = self.ws1.cell(row, colInd).value
+            v = _utils.convert2Str(v) 
+            if v == searchV: 
+                self.lineRow.setText(str(row)) 
+                findN += 1 
+                valRef1 = self.ws1.cell(row,colIndRef1).value
+                valRef2 = self.ws1.cell(row,colIndRef2).value
+                valRef1 = _utils.convert2Str(valRef1)
+                valRef2 = _utils.convert2Str(valRef2) 
+                findExp += f" {row} ,  {valRef1} ,  {valRef2} \n"
+
+        if findN == 0:  
+            exp1 = "検索した値は見つかりませんでした。"
+        elif findN == 1:
+            exp1 = "検索した値は見つかりました。"
+            exp1 += findExp
+        else:
+            exp1 = "検索した値は、複数見つかりました。\n" 
+            exp1 += findExp 
+
+        QMessageBox.question(self.scrollAreaWidgetContents, 
+                        self.questionTitle,exp1, QMessageBox.Yes )
+        self.readAllValuesFromSheet()
+
+
     def getItemsFromSheet2(self, colName):
         index = self.colNameDic2.get(colName, None)
         if index == None:
@@ -529,7 +597,7 @@ class Ui_scrollArea():
         lis_ = []
         for row in range(self.baseRow + 1 , self.maxRow + 1 ):
             v = self.ws2.cell( row, index).value
-            v = _utils.checkStr(v) 
+            v = _utils.convert2Str(v) 
             if v == _utils.nonValue:
                 return(lis_) 
             lis_.append(v)
@@ -550,16 +618,16 @@ class Ui_scrollArea():
             v = "eeeeerrrr"
         else:
             v = self.ws1.cell(self.row,colInd).value  
-            v = _utils.checkStr(v) 
+            v = _utils.convert2Str(v) 
         return(v) 
 
     def writeValues(self):
         for i in range(len(self._lines) ) :
             colName = self._labels[i].text()
             colInd  = self.colNameDic[colName]
-            tp      = self.colTypeDic.get(colName,None)
+            tp      = self.colTypeDic.get(colName, None)
             v       = self._lines[i].text()
-            v       = _utils.convertStr(v, tp)
+            v       = _utils.convertFromStr(v, tp)
             self.ws1.cell(self.row, colInd).value = v 
         self.readAllValuesFromSheet()
         self.compareAllValues()
