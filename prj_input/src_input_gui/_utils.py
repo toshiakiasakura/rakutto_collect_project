@@ -1,7 +1,8 @@
 import sys
 import datetime 
 
-nonValue = "empty"
+nonValue = "space"
+empty = "" 
 def convertStr(v:str,tp=None):
     if tp == "数値" :
         v = convert2Int(v) 

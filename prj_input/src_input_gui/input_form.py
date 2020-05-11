@@ -260,19 +260,14 @@ class Ui_scrollArea():
                 "QLineEdit { background-color : white; color:rgb(0,60,60)}")
         self.lineMacro._same = False 
         self.lineMacro.colName = colName
-        def changeBack(selfMacro ):
-            v = selfMacro.text()
-            b = self.compareValue( v , selfMacro.colName ) 
-            selfMacro._same = b
-            if b:
-                selfMacro.setStyleSheet(
-                "QLineEdit { background-color : white; color:rgb(0,60,60)}")
+        def changeBackLine(obj:object):
+            v = obj.text()
+            b = self.compareValue( v , obj.colName ) 
+            obj._same = b
+            self.changeColor(obj, b, v)
 
-            else:
-                selfMacro.setStyleSheet(
-                "QLineEdit { background-color : yellow ; color:rgb(0,60,60)}")
-        self.lineMacro.changeBack = types.MethodType(changeBack,self.lineMacro)
-        self.lineMacro.editingFinished.connect( self.lineMacro.changeBack )
+        self.lineMacro.changeBackLine = types.MethodType(changeBackLine,self.lineMacro)
+        self.lineMacro.editingFinished.connect( self.lineMacro.changeBackLine )
 
         v = self.getValueFromColumn( colName ) 
         self.lineMacro.setText( v ) 
@@ -294,21 +289,16 @@ class Ui_scrollArea():
         # initial color 
         self.comboBoxMacro.setStyleSheet("background-color: rgb(255,255,255);color:rgb(0,0,0);")
 
-        def changeBack(selfMacro):
-            v = selfMacro.currentText()
-            selfMacro.line.setText( v ) 
+        def changeBackCombo(obj):
+            v = obj.currentText()
+            obj.line.setText( v ) 
 
-            b = self.compareValue( v , selfMacro.colName ) 
-            selfMacro.line._same = b
-            if b:
-                selfMacro.setStyleSheet(
-                "background-color : white; color:rgb(0,60,60)")
-            else:
-                selfMacro.setStyleSheet(
-                "background-color : yellow ; color:rgb(0,60,60)")
+            b = self.compareValue( v , obj.colName ) 
+            obj.line._same = b
+            self.changeColor(obj, b, v)
 
-        self.comboBoxMacro.changeBack = types.MethodType(changeBack,self.comboBoxMacro)
-        self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBack)
+        self.comboBoxMacro.changeBackCombo = types.MethodType(changeBackCombo,self.comboBoxMacro)
+        self.comboBoxMacro.activated[str].connect(self.comboBoxMacro.changeBackCombo)
 
         self.setComboIndex(self.comboBoxMacro,v) 
 
@@ -395,6 +385,11 @@ class Ui_scrollArea():
 
         self.pushButtonCancel.clicked.connect(self.changeRowRelated)
 
+        # pushButtonSave
+        self.pushButtonSave= QPushButton(self.scrollAreaWidgetContents)
+        self.pushButtonSave.setMinimumSize(QtCore.QSize(100, 0))
+        self.pushButtonSave.setObjectName("pushButtonSave")
+        self.pushButtonSave.clicked.connect(self.saveWorkBook)
 
         # pushQuit 
         self.pushQuit = QPushButton(self.scrollAreaWidgetContents)
@@ -414,6 +409,7 @@ class Ui_scrollArea():
         self.gridLayoutBottom.addWidget(self.labelSh2, 1, 0, 1, 1)
         self.gridLayoutBottom.addWidget(self.lineSh1, 0, 1, 1, 1)
         self.gridLayoutBottom.addWidget(self.lineSh2, 1, 1, 1, 1)
+        self.gridLayoutBottom.addWidget(self.pushButtonSave, 0, 5, 1, 1)
         self.gridLayoutBottom.addWidget(self.pushButtonWrite, 1, 3, 1, 1)
         self.gridLayoutBottom.addWidget(self.pushButtonCancel, 1, 4, 1, 1)
         self.gridLayoutBottom.addWidget(self.pushQuit, 1, 5, 1, 1)
@@ -428,6 +424,7 @@ class Ui_scrollArea():
         self.pushButtonWrite.setText(_translate("scrollArea", "書き込み"))
         self.labelSh1.setText(_translate("scrollArea", "入力先シート"))
         self.labelSh2.setText(_translate("scrollArea", "プルタブ参照シート"))
+        self.pushButtonSave.setText(_translate("scrollArea", "保存")) 
         self.pushButtonCancel.setText(_translate("scrollArea", "キャンセル"))
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
@@ -486,19 +483,31 @@ class Ui_scrollArea():
                 return(flag)
         return(flag) 
 
-    def changeLineRef1(self,s ) :
+    def changeLineRef1(self,s:str ) :
         v = self.getValueFromColumn(s)
         self.lineRef1.setText(v) 
 
-    def changeLineRef2(self,s ) :
+    def changeLineRef2(self,s:str ) :
         v = self.getValueFromColumn(s)
         self.lineRef2.setText(v) 
 
-    def changeLineSearch(self, s):
+    def changeLineSearch(self, s:str):
         v = self.getValueFromColumn(s)
         self.lineSearch.setText(v)
 
-    def compareValue(self, v,colName):
+    def changeColor(self,obj:object, compBool:bool, value:str):
+        if value == _utils.nonValue:  
+            obj.setStyleSheet(
+            "background-color : rgb(230,230,255) ; color:rgb(0,60,60)")
+        elif compBool:
+            obj.setStyleSheet(
+            "background-color : white ; color:rgb(0,60,60)")
+        else:
+            obj.setStyleSheet(
+            "background-color : yellow ; color:rgb(0,60,60)")
+        
+
+    def compareValue(self, v:str,colName):
         colInd = self.colNameDic[colName]
         origV = self.ws1.cell(self.row, colInd).value
         origV = _utils.checkStr(origV) 
@@ -510,10 +519,10 @@ class Ui_scrollArea():
     def compareAllValues(self):
         for i in range(len(self._lines) ) :
             line = self._lines[i]
-            line.changeBack()
+            line.changeBackLine()
 
             combo = self._comboBoxes[i]
-            combo.changeBack()
+            combo.changeBackCombo()
 
     def getItemsFromSheet2(self, colName):
         index = self.colNameDic2.get(colName, None)
@@ -556,6 +565,10 @@ class Ui_scrollArea():
             self.ws1.cell(self.row, colInd).value = v 
         self.readAllValuesFromSheet()
         self.compareAllValues()
+
+    def saveWorkBook(self):
+        pathOutput = path[:-5] + "_temp.xlsx"
+        self.wb.save(pathOutput) 
 
 def main():
     app = QApplication(sys.argv)
