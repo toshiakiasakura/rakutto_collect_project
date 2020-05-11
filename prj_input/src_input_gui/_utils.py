@@ -6,7 +6,7 @@ def convertStr(v:str,tp=None):
     if tp == "数値" :
         v = convert2Int(v) 
     elif v == nonValue:
-        v  = ""
+        v  = None
     else:
         pass
     return(v) 

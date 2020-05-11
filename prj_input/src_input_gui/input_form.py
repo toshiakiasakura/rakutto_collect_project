@@ -35,7 +35,7 @@ class Ui_scrollArea():
 
     def initialize(self, scrollArea):
         self.setupGUI(scrollArea)
-
+        self.readAllValuesFromSheet()
 
     def readData(self, path):
         self.wb = load_workbook(path)
@@ -58,7 +58,7 @@ class Ui_scrollArea():
             if colName == _utils.nonValue or i in self.filter:
                 continue
             if colName in self.colNameDic.keys():
-                raise Exception("Columns contain multiple same names") 
+                raise Exception(f"{shName1} には、複数の同じ名称のカラムがあります。") 
             self.colNameDic[colName] = i 
 
         for k,v in self.colNameDic.items():
@@ -68,6 +68,8 @@ class Ui_scrollArea():
             v = self.ws2.cell(self.baseRow, col).value
             v = _utils.checkStr(v) 
             if v in self.colNameDic.keys() :
+                if v in self.colNameDic2.keys():
+                    raise Exception(f"{shName2} には、複数の同じ名称のカラムがあります。")
                 self.colNameDic2[v] = col
 
                 tp = self.ws2.cell(self.colTypeRefRow, col).value
@@ -98,8 +100,21 @@ class Ui_scrollArea():
 
         QtCore.QMetaObject.connectSlotsByName(scrollArea)
 
-
     def changeRowRelated(self):
+        flag = self.checkDiffExist()
+        if flag :
+            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
+            print(exp1)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No :
+                return()
+                
+        self.readAllValuesFromSheet()
+
+
+
+    def readAllValuesFromSheet(self):
         print( inspect.currentframe().f_code.co_name) 
 
         num  = _utils.convertStr( self.lineRow.text(), tpNumeric  ) 
@@ -258,7 +273,6 @@ class Ui_scrollArea():
         self.lineMacro.editingFinished.connect( self.lineMacro.changeBack )
 
         v = self.getValueFromColumn( colName ) 
-        print(f"setupMacros ; colName : {colName} ; value : {v} ")
         self.lineMacro.setText( v ) 
 
         self.horizontalLayoutMacro.addWidget(self.lineMacro)
@@ -378,6 +392,8 @@ class Ui_scrollArea():
         self.pushButtonCancel.setSizePolicy(sizePolicy)
         self.pushButtonCancel.setMinimumSize(QtCore.QSize(100, 0))
         self.pushButtonCancel.setObjectName("pushButtonCancel")
+
+        self.pushButtonCancel.clicked.connect(self.changeRowRelated)
         self.gridLayoutBottom.addWidget(self.pushButtonCancel, 1, 4, 1, 1)
 
 
@@ -427,10 +443,8 @@ class Ui_scrollArea():
         flag = self.checkDiffExist()
         reply = QMessageBox.No
 
-        for i in range(1,5) :
-            print(self.ws1.cell(i,3).value)
         if flag :
-            exp1 = "現在、変更されている変更は保存されません。よろしいでしょうか。" 
+            exp1 = "現在までの変更は保存されません。よろしいでしょうか。" 
             print(exp1)
             reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -453,8 +467,6 @@ class Ui_scrollArea():
     def setComboIndex(self, combo, v:str):
             index = combo.findText(v, QtCore.Qt.MatchFixedString)
             if index == - 1 :
-                print( inspect.currentframe().f_code.co_name) 
-                print( f"    value not found ,{combo.colName}  : '{v}';\n    index : {index} " ) 
                 combo.insertItem(0,v)
                 index = 0
             combo.setCurrentIndex(index) 
@@ -484,8 +496,6 @@ class Ui_scrollArea():
         colInd = self.colNameDic[colName]
         origV = self.ws1.cell(self.row, colInd).value
         origV = _utils.checkStr(origV) 
-        print( inspect.currentframe().f_code.co_name) 
-        print( f"     colName : {colName};  ui : {v} ; origin : {origV}; row : {self.row} " )
         if v == origV:
             return(True)
         else:
@@ -494,10 +504,10 @@ class Ui_scrollArea():
     def compareAllValues(self):
         for i in range(len(self._lines) ) :
             line = self._lines[i]
-            line._same = self.compareValue(line.text(), line.colName) 
+            line.changeBack()
 
             combo = self._comboBoxes[i]
-            combo._same = self.compareValue(combo.currentText(), combo.colName)
+            combo.changeBack()
 
     def getItemsFromSheet2(self, colName):
         index = self.colNameDic2.get(colName, None)
@@ -527,8 +537,6 @@ class Ui_scrollArea():
             v = "eeeeerrrr"
         else:
             v = self.ws1.cell(self.row,colInd).value  
-            print( inspect.currentframe().f_code.co_name) 
-            print(f"    {colName} : {v} ;type:  {type(v)}; comp :  {isinstance(v,datetime.datetime )}" )
             v = _utils.checkStr(v) 
         return(v) 
 
