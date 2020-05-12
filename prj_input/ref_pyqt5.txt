@@ -64,3 +64,7 @@ https://stackoverflow.com/questions/7479915/getting-all-items-of-qcombobox-pyqt4
 
 - PyQt: How to set Combobox to Item knowing Item's text (a title)
 https://stackoverflow.com/questions/22797794/pyqt-how-to-set-combobox-to-item-knowing-items-text-a-title
+
+
+- How can I display GUI while testing PyQt5 app with pytest-qt?
+https://stackoverflow.com/questions/47802375/how-can-i-display-gui-while-testing-pyqt5-app-with-pytest-qt
