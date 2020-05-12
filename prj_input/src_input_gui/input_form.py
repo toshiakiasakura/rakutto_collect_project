@@ -105,18 +105,10 @@ class Ui_scrollArea(_utils.basicUtils):
         QtCore.QMetaObject.connectSlotsByName(scrollArea)
 
     def changeRowRelated(self):
-        flag = self.checkDiffExist()
-        if flag :
-            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
-            print(exp1)
-            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
-                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.No :
-                return()
-
+        reply = self.checkDiffMessage()
+        if reply == QMessageBox.No:
+            return()
         self.readAllValuesFromSheet()
-
-
 
     def readAllValuesFromSheet(self):
         print( inspect.currentframe().f_code.co_name) 
@@ -456,14 +448,7 @@ class Ui_scrollArea(_utils.basicUtils):
 
     def preFinishProcess(self):
         print( inspect.currentframe().f_code.co_name) 
-        flag = self.checkDiffExist()
-        reply = QMessageBox.Yes
-
-        if flag :
-            exp1 = "現在までの変更は保存されません。よろしいでしょうか。" 
-            print(exp1)
-            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
-                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = self.checkDiffMessage()
         return(reply)
 
     def changeMacroValues(self):
@@ -494,6 +479,19 @@ class Ui_scrollArea(_utils.basicUtils):
                 flag = True
                 return(flag)
         return(flag) 
+
+    def checkDiffMessage(self,exp=None):
+        if exp == None: 
+            exp = "Yes を押すとこのページの変更が破棄されます。" 
+
+        flag = self.checkDiffExist()
+        reply = QMessageBox.Yes
+        if flag :
+            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
+            print(exp1)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        return( reply ) 
 
     def changeLineRef1(self, s:str) :
         v = self.getValueFromColumn(s)
@@ -537,14 +535,9 @@ class Ui_scrollArea(_utils.basicUtils):
             combo.changeBackCombo()
 
     def findValue(self) :
-        flag = self.checkDiffExist()
-        if flag :
-            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
-            print(exp1)
-            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
-                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.No :
-                return()
+        reply = self.checkDiffMessage()
+        if reply == QMessageBox.No:
+            return()
         self.readAllValuesFromSheet()            
 
         # find part.
@@ -620,14 +613,10 @@ class Ui_scrollArea(_utils.basicUtils):
         return(max_) 
 
     def addNewLine(self):
-        flag = self.checkDiffExist()
-        if flag :
-            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
-            print(exp1)
-            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
-                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.No :
-                return()
+        reply = self.checkDiffMessage()
+        if reply == QMessageBox.No:
+            return()
+
         # add new data 
         self.maxBaseRow = self.getMaxRow() + 1 
         nextIndex = self.getMaxIndex() + 1 
