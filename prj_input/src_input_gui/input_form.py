@@ -24,8 +24,9 @@ tpDate    = "日付"
 tpDropDown= "プルタブ"
 
 
-class Ui_scrollArea():
+class Ui_scrollArea(_utils.basicUtils):
     def __init__(self):
+        super().__init__()
         self.row = 3
         self.baseRow = 2
         self.baseCol = 1 
@@ -55,9 +56,8 @@ class Ui_scrollArea():
         self.indNameDic = {}
         self.colTypeDic = {}
         for col in range(1,self.maxColumn + 1 ): 
-            colName = self.ws1.cell(self.baseRow, col).value 
-            colName = _utils.convert2Str(colName)
-            if colName == _utils.nonValue or col in self.filter:
+            colName = self.readOneValue(self.baseRow, col) 
+            if colName == self.nonValue or col in self.filter:
                 continue
             if colName in self.colNameDic.keys():
                 raise Exception(f"{shName1} には、複数の同じ名称のカラムがあります。") 
@@ -70,14 +70,14 @@ class Ui_scrollArea():
 
         for col in range(1, self.maxColumn2 + 1) :
             v = self.ws2.cell(self.baseRow, col).value
-            v = _utils.convert2Str(v) 
+            v = self.convert2Str(v) 
             if v in self.colNameDic.keys() :
                 if v in self.colNameDic2.keys():
                     raise Exception(f"{shName2} には、複数の同じ名称のカラムがあります。")
                 self.colNameDic2[v] = col
 
                 tp = self.ws2.cell(self.colTypeRefRow, col).value
-                tp = _utils.convert2Str(tp)
+                tp = self.convert2Str(tp)
                 if tp in self.colTypeRefLis:
                     self.colTypeDic[v] = tp
 
@@ -121,7 +121,7 @@ class Ui_scrollArea():
     def readAllValuesFromSheet(self):
         print( inspect.currentframe().f_code.co_name) 
 
-        num  = _utils.convertFromStr( self.lineRow.text(), tpNumeric  ) 
+        num  = self.convertFromStr( self.lineRow.text(), tpNumeric  ) 
         if isinstance( num, int):
             #num += 1 
             self.row = num
@@ -487,7 +487,6 @@ class Ui_scrollArea():
             index = 0
         combo.setCurrentIndex(index) 
 
-
     def checkDiffExist(self):
         flag = False
         for i in range( len(self._lines) ) :
@@ -510,7 +509,7 @@ class Ui_scrollArea():
 
     def changeColor(self,obj:object, compBool:bool, value:str):
         if compBool:
-            if value == _utils.nonValue or value == _utils.empty: 
+            if value == self.nonValue or value == self.empty: 
                 obj.setStyleSheet(
                 "background-color : rgb(230,230,255) ; color:rgb(0,60,60)")
             else:
@@ -523,8 +522,7 @@ class Ui_scrollArea():
 
     def compareValue(self, v:str, colName):
         colInd = self.colNameDic[colName]
-        origV = self.ws1.cell(self.row, colInd).value
-        origV = _utils.convert2Str(origV) 
+        origV = self.readOneValue(self.row, colInd) 
         if v == origV:
             return(True)
         else:
@@ -562,15 +560,12 @@ class Ui_scrollArea():
         findN = 0 
         findExp = f" 行 ,  {colNameRef1} ,  {colNameRef2} \n"
         for row in range(self.baseRow + 1 ,self.maxRow):
-            v = self.ws1.cell(row, colInd).value
-            v = _utils.convert2Str(v) 
+            v = self.readOneValue(row, colInd)
             if v == searchV: 
                 self.lineRow.setText(str(row)) 
                 findN += 1 
-                valRef1 = self.ws1.cell(row,colIndRef1).value
-                valRef2 = self.ws1.cell(row,colIndRef2).value
-                valRef1 = _utils.convert2Str(valRef1)
-                valRef2 = _utils.convert2Str(valRef2) 
+                valRef1 = self.readOneValue(row, colIndRef1) 
+                valRef2 = self.readOneValue(row, colIndRef2) 
                 findExp += f" {row} ,  {valRef1} ,  {valRef2} \n"
 
         if findN == 0:  
@@ -586,6 +581,10 @@ class Ui_scrollArea():
                         self.questionTitle,exp1, QMessageBox.Yes )
         self.readAllValuesFromSheet()
 
+    def readOneValue(self, row, col):
+        v = self.ws1.cell(row,col).value
+        v = self.convert2Str(v) 
+        return(v) 
 
     def getItemsFromSheet2(self, colName):
         index = self.colNameDic2.get(colName, None)
@@ -594,8 +593,8 @@ class Ui_scrollArea():
         lis_ = []
         for row in range(self.baseRow + 1 , self.maxRow + 1 ):
             v = self.ws2.cell( row, index).value
-            v = _utils.convert2Str(v) 
-            if v == _utils.nonValue:
+            v = self.convert2Str(v) 
+            if v == self.nonValue:
                 return(lis_) 
             lis_.append(v)
         return(lis_)
@@ -603,9 +602,8 @@ class Ui_scrollArea():
 
     def getMaxRow(self): 
         for row in range(self.maxRow, self.baseRow,-1) :
-            v = self.ws1.cell(row, self.baseCol).value 
-            v = _utils.convert2Str(v) 
-            if v == _utils.nonValue or v == _utils.empty:
+            v = self.readOneValue(row, self.baseCol)
+            if v == self.nonValue or v == self.empty:
                 pass
             else:
                 return(row)
@@ -614,9 +612,8 @@ class Ui_scrollArea():
     def getMaxIndex(self):
         max_ = 1 
         for row in range(self.baseRow + 1, self.maxBaseRow + 1 ):
-            v = self.ws1.cell(row,self.baseCol).value
-            v = _utils.convert2Str(v) 
-            v = _utils.convertFromStr(v, tp=tpNumeric)
+            v = self.readOneValue(row, self.baseCol) 
+            v = self.convertFromStr(v, tp=tpNumeric)
             if isinstance(v, int):
                 if max_ < v:
                     max_ = v 
@@ -663,8 +660,7 @@ class Ui_scrollArea():
             print("Error there is no column name") 
             v = "eeeeerrrr"
         else:
-            v = self.ws1.cell(self.row,colInd).value  
-            v = _utils.convert2Str(v) 
+            v = self.readOneValue( self.row, colInd) 
         return(v) 
 
     def writeValues(self):
@@ -673,7 +669,7 @@ class Ui_scrollArea():
             colInd  = self.colNameDic[colName]
             tp      = self.colTypeDic.get(colName, None)
             v       = self._lines[i].text()
-            v       = _utils.convertFromStr(v, tp)
+            v       = self.convertFromStr(v, tp)
             self.ws1.cell(self.row, colInd).value = v 
         self.readAllValuesFromSheet()
         self.compareAllValues()
