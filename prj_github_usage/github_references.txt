@@ -30,3 +30,8 @@ https://help.github.com/en/github/managing-subscriptions-and-notifications-on-gi
 # GitHubで通知が来るタイミングまとめ
 https://qiita.com/tomboyboy/items/78246e57fe28ff52dc9c
 
+# GitHub issueにリポジトリのコードをスニペットとして楽に埋め込み引用する方法
+https://techracho.bpsinc.jp/hachi8833/2018_05_09/56111
+
+# 「巨大プルリク1件vs細かいプルリク100件」問題を考える（翻訳）
+https://techracho.bpsinc.jp/hachi8833/2018_02_07/51095
