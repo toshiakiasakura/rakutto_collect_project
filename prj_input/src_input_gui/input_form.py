@@ -1,5 +1,12 @@
 import sys
+import types 
+import inspect
+import datetime
+import pandas as pd
+import time 
+
 import _utils 
+
 from openpyxl import Workbook
 from openpyxl import load_workbook
 
@@ -9,9 +16,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit,\
             QGridLayout, QSpacerItem, QSizePolicy, QScrollArea
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QGuiApplication, QColor
-import types 
-import inspect
-import datetime
+
 
 
 
@@ -19,9 +24,12 @@ path = "./test_data.xlsx"
 shName1 = "患者情報入力シート"
 shName2 = "患者プルタブシート" 
 
-tpNumeric = "数値" 
-tpDate    = "日付" 
-tpDropDown= "プルタブ"
+rowValue       = "行番号" 
+columnValue    = "列番号"  
+columnItemName = "項目名"
+preValue   = "変更前の値"
+postValue  = "変更後の値" 
+
 
 
 class Ui_scrollArea(_utils.basicUtils):
@@ -31,9 +39,16 @@ class Ui_scrollArea(_utils.basicUtils):
         self.baseRow = 2
         self.baseCol = 1 
         self.colTypeRefRow = 1 
-        self.colTypeRefLis = [tpNumeric,tpDate ,tpDropDown ] 
+        self.colTypeRefLis = [self.tpNumeric, self.tpDate , self.tpDropDown]
         self.filter = []
         self.questionTitle = "confirmation"
+        self.errorOccurFlag = False
+        now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        self.path2Diff = path[:-5] + f"_{now}_差分_未.xlsx" 
+        self.path2DiffFin = path[:-5] + f"_{now}_差分_済.xlsx"
+
+        self.index = 1
 
     def initialize(self, scrollArea):
         self.setupGUI(scrollArea)
@@ -81,6 +96,10 @@ class Ui_scrollArea(_utils.basicUtils):
                 if tp in self.colTypeRefLis:
                     self.colTypeDic[v] = tp
 
+        self.baseColValue= self.ws1.cell(self.baseRow, self.baseCol).value
+        self.diffDic = {rowValue:[], columnValue:[], self.baseColValue:[], 
+                columnItemName:[], preValue:[], postValue:[] }
+
     def setupGUI(self,scrollArea):
         scrollArea.setObjectName("scrollArea")
         mainWidth = 1000
@@ -113,7 +132,7 @@ class Ui_scrollArea(_utils.basicUtils):
     def readAllValuesFromSheet(self):
         print( inspect.currentframe().f_code.co_name) 
 
-        num  = self.convertFromStr( self.lineRow.text(), tpNumeric  ) 
+        num  = self.convertFromStr( self.lineRow.text(), self.tpNumeric  ) 
         if isinstance( num, int):
             #num += 1 
             self.row = num
@@ -259,6 +278,18 @@ class Ui_scrollArea(_utils.basicUtils):
         self.lineMacro.colName = colName
         def changeBackLine(obj:object):
             v = obj.text()
+            colInd = self.colNameDic[obj.colName]
+            origV  = self.readOneValue(self.row, colInd)
+            tp = self.colTypeDic.get(obj.colName,None) 
+            flag   = self.checkType( v,tp ) 
+            if (flag == False) and (self.errorOccurFlag == True):
+                print( inspect.currentframe().f_code.co_name) 
+                print(v, origV, v==origV)
+                if v != origV:
+                    obj.setText(origV)
+                    v = origV
+                    self.typeErrorMessage(tp)
+            
             b = self.compareValue( v , obj.colName ) 
             obj._same = b
             self.changeColor(obj, b, v)
@@ -288,6 +319,15 @@ class Ui_scrollArea(_utils.basicUtils):
 
         def changeBackCombo(obj):
             v = obj.currentText()
+            colInd = self.colNameDic[obj.colName]
+            origV  = self.readOneValue(self.row, colInd)
+            tp = self.colTypeDic.get(obj.colName,None)
+            flag   = self.checkType(v, tp) 
+            if flag == False and self.errorOccurFlag:
+                self.setComboIndex(obj, origV)
+                v= origV
+                self.typeErrorMessage(tp)
+
             obj.line.setText(v) 
 
             b = self.compareValue( v, obj.colName) 
@@ -308,7 +348,7 @@ class Ui_scrollArea(_utils.basicUtils):
 
         # visible setting 
         tp = self.colTypeDic.get(colName, None)
-        if tp == tpDropDown: 
+        if tp == self.tpDropDown: 
             self.lineMacro.setVisible(False)
         else:
             self.comboBoxMacro.setVisible(False)
@@ -452,6 +492,7 @@ class Ui_scrollArea(_utils.basicUtils):
         return(reply)
 
     def changeMacroValues(self):
+        self.errorOccurFlag = False
         for i in range(len(self._lines) ) :
             colName = self._labels[i].text()
             v = self.getValueFromColumn( colName ) 
@@ -464,6 +505,7 @@ class Ui_scrollArea(_utils.basicUtils):
             combo.addItems( combo.defaultItems ) 
             self.setComboIndex(combo, v) 
 
+        self.errorOccurFlag = True
 
     def setComboIndex(self, combo, v:str):
         index = combo.findText(v, QtCore.Qt.MatchFixedString)
@@ -487,11 +529,21 @@ class Ui_scrollArea(_utils.basicUtils):
         flag = self.checkDiffExist()
         reply = QMessageBox.Yes
         if flag :
-            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
-            print(exp1)
-            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+            print(exp)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp, 
                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         return( reply ) 
+
+    def typeErrorMessage(self,tp):
+        print( inspect.currentframe().f_code.co_name) 
+        exp = "想定外のエラーです。" 
+        if tp == self.tpNumeric:
+            exp = "整数を入力してください。"
+        elif tp == self.tpDate:
+            exp = "日付を入力してください。 \nex. 2020/04/01"
+
+        QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp, QMessageBox.Yes )
+        
 
     def changeLineRef1(self, s:str) :
         v = self.getValueFromColumn(s)
@@ -527,12 +579,17 @@ class Ui_scrollArea(_utils.basicUtils):
             return(False)
 
     def compareAllValues(self):
+        self.errorOccurFlag = False
         for i in range(len(self._lines) ) :
-            line = self._lines[i]
-            line.changeBackLine()
-
-            combo = self._comboBoxes[i]
-            combo.changeBackCombo()
+            colName = self._lines[i].colName
+            tp = self.colNameDic.get(colName, None)
+            if tp == self.tpDropDown:
+                combo = self._comboBoxes[i]
+                combo.changeBackCombo()
+            else:
+                line = self._lines[i]
+                line.changeBackLine()
+        self.errorOccurFlag = True
 
     def findValue(self) :
         reply = self.checkDiffMessage()
@@ -606,7 +663,7 @@ class Ui_scrollArea(_utils.basicUtils):
         max_ = 1 
         for row in range(self.baseRow + 1, self.maxBaseRow + 1 ):
             v = self.readOneValue(row, self.baseCol) 
-            v = self.convertFromStr(v, tp=tpNumeric)
+            v = self.convertFromStr(v, tp=self.tpNumeric)
             if isinstance(v, int):
                 if max_ < v:
                     max_ = v 
@@ -653,6 +710,11 @@ class Ui_scrollArea(_utils.basicUtils):
         return(v) 
 
     def writeValues(self):
+        flag = self.checkDiffExist()
+        if flag:
+            print( inspect.currentframe().f_code.co_name) 
+            self.addDiff2Dic()
+
         for i in range(len(self._lines) ) :
             colName = self._labels[i].text()
             colInd  = self.colNameDic[colName]
@@ -663,9 +725,42 @@ class Ui_scrollArea(_utils.basicUtils):
         self.readAllValuesFromSheet()
         self.compareAllValues()
 
+
+    def addDiff2Dic(self):
+        for i in range( len(self._lines) ) :
+            line = self._lines[i]
+            if not line._same:
+                colInd = self.colNameDic[line.colName]
+                baseV = self.readOneValue(self.row, self.baseCol)
+                origV = self.readOneValue(self.row, colInd) 
+                
+                tp = self.colTypeDic.get(line.colName, None)
+                baseV = self.convertFromStr( baseV , tp)
+                origV = self.convertFromStr( origV , tp)
+                newV  = self.convertFromStr( line.text(), tp) 
+
+                self.diffDic[rowValue].append(self.row)
+                self.diffDic[columnValue].append(colInd)
+                self.diffDic[self.baseColValue].append(baseV)
+                self.diffDic[columnItemName].append(line.colName)
+                self.diffDic[preValue].append(origV)
+                self.diffDic[postValue].append(newV)
+
+        print(self.diffDic)
+        with pd.ExcelWriter( self.path2Diff, engine="openpyxl", mode="wa", 
+                datetime_format='yyyy/mm/dd') as writer:
+            df = pd.DataFrame(self.diffDic) 
+            df.to_excel(writer, sheet_name="差分", index=True)
+
     def saveWorkBook(self):
+        st = time.perf_counter()
+
         pathOutput = path[:-5] + "_temp.xlsx"
         self.wb.save(pathOutput) 
+
+        en = time.perf_counter()
+        t = en- st 
+        print(t)
 
 def main():
     app = QApplication(sys.argv)

@@ -1,5 +1,7 @@
 from openpyxl import Workbook
 from openpyxl import load_workbook
+import pandas as pd
+import datetime 
 
 path = "./test_data.xlsx"
 shName1 = "患者情報入力シート"
@@ -14,6 +16,14 @@ def main():
     ws1.cell(1,1).value = "changed"
     print(ws1.cell(1,1).value, wsBase.cell(1,1).value)
 
+def main1():
+    path = "test_data_temp.xlsx"
+    df = pd.read_excel(path, converters={"date":pd.Timestamp})
+    print(df)
 
+def main2():
+    s = "2020/04/05" 
+    d = datetime.datetime.strptime(s,"%Y/%m/%d")
+    print(d)
 if __name__ == "__main__":
-    main()
+    main2()
