@@ -63,14 +63,7 @@ class Ui_scrollArea():
                 raise Exception(f"{shName1} には、複数の同じ名称のカラムがあります。") 
             self.colNameDic[colName] = col 
 
-        for row in range(self.maxRow, self.baseRow,-1) :
-            v = self.ws1.cell(row, self.baseCol).value 
-            v = _utils.convert2Str(v) 
-            if v == _utils.nonValue or v == _utils.empty:
-                pass
-            else:
-                self.maxBaseRow = row
-                break
+        self.maxBaseRow = self.getMaxRow()
 
         for k,v in self.colNameDic.items():
             self.indNameDic[v] = k 
@@ -202,6 +195,7 @@ class Ui_scrollArea():
         val =  self.getValueFromColumn( self.comboSearch.currentText() ) 
         self.lineSearch.setText(val)
 
+        # pushNewRow
         self.pushNewRow = QPushButton(self.scrollAreaWidgetContents)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -209,6 +203,8 @@ class Ui_scrollArea():
         sizePolicy.setHeightForWidth(self.pushNewRow.sizePolicy().hasHeightForWidth())
         self.pushNewRow.setSizePolicy(sizePolicy)
         self.pushNewRow.setObjectName("pushNewRow")
+        self.pushNewRow.clicked.connect(self.addNewLine)
+        # pushSearch
         self.pushSearch = QPushButton(self.scrollAreaWidgetContents)
         self.pushSearch.clicked.connect(self.findValue)
         self.pushSearch.setObjectName("pushSearch")
@@ -513,12 +509,13 @@ class Ui_scrollArea():
         self.lineSearch.setText(v)
 
     def changeColor(self,obj:object, compBool:bool, value:str):
-        if value == _utils.nonValue or value == _utils.empty:  
-            obj.setStyleSheet(
-            "background-color : rgb(230,230,255) ; color:rgb(0,60,60)")
-        elif compBool:
-            obj.setStyleSheet(
-            "background-color : rgb(255,255,255); color:rgb(0,60,60)")
+        if compBool:
+            if value == _utils.nonValue or value == _utils.empty: 
+                obj.setStyleSheet(
+                "background-color : rgb(230,230,255) ; color:rgb(0,60,60)")
+            else:
+                obj.setStyleSheet(
+                "background-color : rgb(255,255,255); color:rgb(0,60,60)")
         else:
             obj.setStyleSheet(
             "background-color : yellow ; color:rgb(0,60,60)")
@@ -577,9 +574,9 @@ class Ui_scrollArea():
                 findExp += f" {row} ,  {valRef1} ,  {valRef2} \n"
 
         if findN == 0:  
-            exp1 = "検索した値は見つかりませんでした。"
+            exp1 = "検索した値は見つかりませんでした。\n"
         elif findN == 1:
-            exp1 = "検索した値は見つかりました。"
+            exp1 = "検索した値は見つかりました。\n"
             exp1 += findExp
         else:
             exp1 = "検索した値は、複数見つかりました。\n" 
@@ -603,6 +600,55 @@ class Ui_scrollArea():
             lis_.append(v)
         return(lis_)
 
+
+    def getMaxRow(self): 
+        for row in range(self.maxRow, self.baseRow,-1) :
+            v = self.ws1.cell(row, self.baseCol).value 
+            v = _utils.convert2Str(v) 
+            if v == _utils.nonValue or v == _utils.empty:
+                pass
+            else:
+                return(row)
+        return(self.baseRow)
+
+    def getMaxIndex(self):
+        max_ = 1 
+        for row in range(self.baseRow + 1, self.maxBaseRow + 1 ):
+            v = self.ws1.cell(row,self.baseCol).value
+            v = _utils.convert2Str(v) 
+            v = _utils.convertFromStr(v, tp=tpNumeric)
+            if isinstance(v, int):
+                if max_ < v:
+                    max_ = v 
+        return(max_) 
+
+    def addNewLine(self):
+        flag = self.checkDiffExist()
+        if flag :
+            exp1 = "Yes を押すとこのページの変更が破棄されます。" 
+            print(exp1)
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp1, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No :
+                return()
+        # add new data 
+        self.maxBaseRow = self.getMaxRow() + 1 
+        nextIndex = self.getMaxIndex() + 1 
+
+        self.lineRow.setText( str(self.maxBaseRow) )
+        self.row = self.maxBaseRow
+
+        self.changeLineRef1( self.comboRef1.currentText() ) 
+        self.changeLineRef2( self.comboRef2.currentText() ) 
+        self.changeMacroValues()
+        print( inspect.currentframe().f_code.co_name) 
+        print(nextIndex)
+        _translate = QtCore.QCoreApplication.translate
+        # TO DO : If self.baseCol is changed, 
+        #         this part does not correctly catch the behavior.  
+        self._lines[0].setText(str(nextIndex) ) 
+        self.compareAllValues()
+        self._lines[0].setText(str(nextIndex)) 
 
     def getAllItemsCombo(self,combo):
         lis_ = []
