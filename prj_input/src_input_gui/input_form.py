@@ -4,6 +4,8 @@ import inspect
 import datetime
 import pandas as pd
 import time 
+import shutil
+import os
 
 import _utils 
 
@@ -473,24 +475,6 @@ class Ui_scrollArea(_utils.basicUtils):
         self.pushCancel.setText(_translate("scrollArea", "キャンセル"))
         self.pushQuit.setText(_translate("scrollArea", "終了"))
 
-    def quitProcess(self):
-        print( inspect.currentframe().f_code.co_name) 
-        reply = self.preFinishProcess()
-        if reply == QMessageBox.Yes:
-            QApplication.instance().quit()
-        else:
-            pass 
-
-    def closeEvent(self, event):
-        # dose not work well.
-        self.preFinishProcess()
-        event.accept()
-
-    def preFinishProcess(self):
-        print( inspect.currentframe().f_code.co_name) 
-        reply = self.checkDiffMessage()
-        return(reply)
-
     def changeMacroValues(self):
         self.errorOccurFlag = False
         for i in range(len(self._lines) ) :
@@ -752,15 +736,55 @@ class Ui_scrollArea(_utils.basicUtils):
             df = pd.DataFrame(self.diffDic) 
             df.to_excel(writer, sheet_name="差分", index=True)
 
+
+    def quitProcess(self):
+        print( inspect.currentframe().f_code.co_name) 
+        reply = self.preFinishProcess()
+        if reply == QMessageBox.No:
+            return()
+        
+        if os.path.exists(self.path2Diff):
+            exp = "今までの差分は全てファイルに反映されません。\n本当によろしいですか？"
+
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return()
+        QApplication.instance().quit()
+
+    def closeEvent(self, event):
+        # dose not work well.
+        self.preFinishProcess()
+        event.accept()
+
+    def preFinishProcess(self):
+        print( inspect.currentframe().f_code.co_name) 
+        reply = self.checkDiffMessage()
+        return(reply)
+
     def saveWorkBook(self):
-        st = time.perf_counter()
+        reply = self.checkDiffMessage()
+        if reply == QMessageBox.No:
+            return()
+            
 
-        pathOutput = path[:-5] + "_temp.xlsx"
-        self.wb.save(pathOutput) 
+        if os.path.exists(self.path2Diff):
+            st = time.perf_counter()
 
-        en = time.perf_counter()
-        t = en- st 
-        print(t)
+            pathOutput = path[:-5] + "_temp.xlsx"
+            self.wb.save(pathOutput) 
+
+            en = time.perf_counter()
+            t = en- st 
+            shutil.move(self.path2Diff, self.path2DiffFin)
+            exp = "データを保存して終了します。"
+        else:
+            exp = "変更はないため、終了します。"
+
+        QMessageBox.question(self.scrollAreaWidgetContents, 
+                        self.questionTitle,exp, QMessageBox.Yes )
+        QApplication.instance().quit()
+        print()
 
 def main():
     app = QApplication(sys.argv)
