@@ -47,8 +47,11 @@ class Ui_scrollArea(_utils.basicUtils):
         self.errorOccurFlag = False
         now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         
-        self.path2Diff = path[:-5] + f"_{now}_差分_未.xlsx" 
-        self.path2DiffFin = path[:-5] + f"_{now}_差分_済.xlsx"
+        self.path = path
+        self.pathName = path.split("/")[-1]
+        self.pathDir = "./楽々インプット/" 
+        self.path2Diff = self.pathDir + self.pathName[:-5] + f"_{now}_差分_未.xlsx" 
+        self.path2DiffFin = self.pathDir + self.pathName[:-5] + f"_{now}_差分_済.xlsx"
 
         self.index = 1
 
@@ -280,8 +283,6 @@ class Ui_scrollArea(_utils.basicUtils):
             tp = self.colTypeDic.get(obj.colName,None) 
             flag   = self.checkType( v,tp ) 
             if (flag == False) and (self.errorOccurFlag == True):
-                print( inspect.currentframe().f_code.co_name) 
-                print(v, origV, v==origV)
                 if v != origV:
                     obj.setText(origV)
                     v = origV
@@ -462,7 +463,7 @@ class Ui_scrollArea(_utils.basicUtils):
 
     def retranslateUi(self, scrollArea):
         _translate = QtCore.QCoreApplication.translate
-        scrollArea.setWindowTitle(_translate("scrollArea", "ScrollArea"))
+        scrollArea.setWindowTitle(_translate("scrollArea", "楽々インプット"))
         self.pushNewRow.setText(_translate("scrollArea", "新規追加"))
         self.pushSearch.setText(_translate("scrollArea", "検索"))
         self.pushWrite.setText(_translate("scrollArea", "変更を追加"))
@@ -518,7 +519,6 @@ class Ui_scrollArea(_utils.basicUtils):
         return( reply ) 
 
     def typeErrorMessage(self,tp):
-        print( inspect.currentframe().f_code.co_name) 
         exp = "想定外のエラーです。" 
         if tp == self.tpNumeric:
             exp = "整数を入力してください。"
@@ -556,8 +556,6 @@ class Ui_scrollArea(_utils.basicUtils):
     def compareValue(self, v:str, colName):
         colInd = self.colNameDic[colName]
         origV = self.readOneValue(self.row, colInd) 
-        print( inspect.currentframe().f_code.co_name) 
-        print(f"current : '{v}', new: '{origV}'", v==origV)
         if v == origV:
             return(True)
         else:
@@ -672,8 +670,6 @@ class Ui_scrollArea(_utils.basicUtils):
         self.changeLineRef1( self.comboRef1.currentText() ) 
         self.changeLineRef2( self.comboRef2.currentText() ) 
         self.changeMacroValues()
-        print( inspect.currentframe().f_code.co_name) 
-        print(nextIndex)
         _translate = QtCore.QCoreApplication.translate
         # TO DO : If self.baseCol is changed, 
         #         this part does not correctly catch the behavior.  
@@ -690,8 +686,7 @@ class Ui_scrollArea(_utils.basicUtils):
     def getValueFromColumn(self,colName):
         colInd = self.colNameDic.get(colName ,None) 
         if colInd == None:
-            print( inspect.currentframe().f_code.co_name) 
-            print("Error there is no column name") 
+            raise Exception("指定されたカラム名はありません。")
             v = "eeeeerrrr"
         else:
             v = self.readOneValue( self.row, colInd) 
@@ -734,7 +729,9 @@ class Ui_scrollArea(_utils.basicUtils):
                 self.diffDic[preValue].append(origV)
                 self.diffDic[postValue].append(newV)
 
-        print(self.diffDic)
+        #print(self.diffDic)
+        if not os.path.exists(self.pathDir):
+            os.mkdir(self.pathDir)
         with pd.ExcelWriter( self.path2Diff, engine="openpyxl", mode="wa", 
                 datetime_format='yyyy/mm/dd') as writer:
             df = pd.DataFrame(self.diffDic) 
@@ -786,7 +783,11 @@ class Ui_scrollArea(_utils.basicUtils):
             en = time.perf_counter()
             t = en- st 
             shutil.move(self.path2Diff, self.path2DiffFin)
-            exp = "データを保存して終了します。"
+            exp = "データを保存して終了します。\n"
+            p1 = self.pathName
+            p2 = self.path2DiffFin.split("/")[-1]
+            exp += f"以下のデータを更新しました。\n{p1}\n"
+            exp += f"以下のデータを新規作成しました。\n{p2}\n"
         else:
             exp = "変更はないため、終了します。"
 
