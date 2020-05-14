@@ -89,7 +89,11 @@ Alias for commit.
 # Git Architecture. 
 
 <img src="pic/object_model1.png" width="600px">  
+
+* * *  
 <img src="pic/object_model2.png" width="600px">  
+
+* * *  
 <img src="pic/object_model3.png" width="600px">  
 
 
@@ -251,29 +255,29 @@ Then, this chapter, we will explore how to solve conflicts elegantly.
 ## Make conflicts. 
 ```
 git init 
-git echo "hello world" > text.txt
+echo "hello world" > text.txt
 git add .
 git commit 
 
 git branch test 
 
-git echo "dirty line" >> text.txt 
+echo "dirty line" >> text.txt 
 git add .
 git commit 
 
 git checkout test 
-git echo "hello2 world" >> text.txt 
+echo "hello2 world" >> text.txt 
 git add .
 git commit 
 
 git merge master 
 ```
 
-##  Find Out Conlicted Files. 
+##  Find Out Coflicted Files. 
 
 `git status`  or `git ls-files -u` is good.  
 
-Also if you want to find out differences,  
+Also if you want to find out differences between files,  
 
 ```
 git diff  
@@ -283,15 +287,14 @@ git diff --stat
  
 are options.   
 
-If you want to find out commits that cause the conflict, use the code.  
+If you want to find out commits that cause the conflicts, use the code below.  
 ```
 git log --merge --left-right -p  
 git log --merge --left-right -p <filename>
 ```
-Show the commits that cause the conflict.  
 
-*Q. if you want to adopt whole changes of one branch, how?*
-Ans. 
+*Q. if you want to adopt whole changes of one branch, how?*  
+A. 
 If you want to adopt branch which you are now checking out, use --ours,
 els use --theirs.
 
@@ -304,8 +307,8 @@ This code should be used after reset merge,
 git merge -X[ours|theirs] <branchname>
 ```
 
-*Q. if you want to cancel merge, how?*
-Ans. 
+*Q. if you want to cancel merge, how?*  
+A. 
 ```
 git reset --hard HEAD
 ```
@@ -319,9 +322,8 @@ your untracked files are lost completely.
 
 # Pick up commit from the history. 
 
-`git cherry-pick` is recommit to the branch. 
-`git revert` is reverse commit to the branch.
-`git revert` can be used for cancel the commit. 
+`git cherry-pick` is recommit to the branch.  
+`git revert` is reverse commit to the branch. `git revert` can be used for cancel the commit.  
 
 
 
@@ -390,28 +392,41 @@ This is one example of usage of github.
 
 See the detail, https://gist.github.com/Gab-km/3705015
 
-## Our GitHub Flow.  
-Due to reaons below, we have to change the style of GitHub Flow.  
 
-- we do not think deploy.  
-- we do not develop large code, usually tasks are completed within individuals.  
+# Managing Branch. 
+This picture is one good management style, cited from 
+[A successful Git branching model](https://nvie.com/posts/a-successful-git-branching-model/).<br> 
+A part of this document is old, but many are still useful.  
 
-Then, 
-- Anything in the master branch can be run. 
-- Master branch is sharing place, use pullrequest to master when you finish some tasks. 
-- Branch is made for individuals scale  
-- If you want to edit the branch created by others,   
-make a branch from that branch, edit files, and send a pull request. 
+* * *
+<img src="pic/git_branching_model.png" width="600px">  
+
+* * * 
+
+# Q and A. 
+
+*Q. How to make new branch from old commit?*  
+A.  
+```
+git checkout <SHA1 hash> 
+```
+The branch is changed to *detached HEAD*.  
+```
+git branch <branchname>
+git checkout <branchname>
+```
+Then, you can work from the specific commit status. 
 
 
+* * * 
 
-# To Do List.  
+# Garbage Zone, You do not need to read the contents below.
+## To Do List.  
 - If you work in the wrong branch, and want to reflect changes to another branch, how?   
 - How to control data withing local environment only?   
 - How to manage jupyter notebook code efficiently?  
-- How to make new branch from old commit? 
 
-# Make Test Environment.  
+## Make Test Environment.  
 
 Delete files other than ones of which prefix is "." .  
 ``` 
@@ -428,5 +443,17 @@ echo "my name" >> hoge2.txt
 https://ameblo.jp/pori-memo/entry-12063386035.html  
 
 
+## Our GitHub Flow.  
+Due to reaons below, we have to change the style of GitHub Flow.  
+
+- we do not think deploy.  
+- we do not develop large code, usually tasks are completed within individuals.  
+
+Then, 
+- Anything in the master branch can be run. 
+- Master branch is sharing place, use pullrequest to master when you finish some tasks. 
+- Branch is made for individuals scale  
+- If you want to edit the branch created by others,   
+Make a branch from that branch, edit files, and send a pull request. 
 
 
