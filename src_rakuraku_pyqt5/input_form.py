@@ -205,6 +205,7 @@ class Ui_scrollArea(_utils.basicUtils):
         val =  self.getValueFromColumn( self.comboSearch.currentText() ) 
         self.lineSearch.setText(val)
 
+
         # pushNewRow
         self.pushNewRow = QPushButton(self.scrollAreaWidgetContents)
         self.pushNewRow.setObjectName("pushNewRow")
@@ -584,7 +585,7 @@ class Ui_scrollArea(_utils.basicUtils):
         reply = self.checkDiffMessage()
         if reply == QMessageBox.No:
             return()
-        self.readAllValuesFromSheet()            
+        #self.readAllValuesFromSheet()            
 
         # find part.
         searchV = self.lineSearch.text()
