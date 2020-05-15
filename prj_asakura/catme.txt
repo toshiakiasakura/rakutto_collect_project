@@ -1,2 +1,0 @@
-please checkout to "asa". Then this directory is fulfilled.
-> git checkout asa 
