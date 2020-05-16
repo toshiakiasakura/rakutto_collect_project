@@ -2,8 +2,8 @@ import openpyxl
 import numpy as np
 import pandas as pd
 import glob
+import sys
 
-import _utils 
 
 
 sheet_1_name = "患者・疑似症患者臨床症状調査（添付１）"
@@ -26,11 +26,14 @@ def main(dir_):
     df2 = pd.DataFrame()
     
     for path in extractFilePaths:
-        wb = openpyxl.load_workbook(path)
-        ws1 = wb[sheet_1_name]
-        ws4 = wb[sheet_4_name]
-        df1 = createMedicalHistoryDF(wb,ws1,df1)
-        df2 = createContactPersonsDF(wb,ws1,ws4,df2)    
+        dfPre1 = pd.read_excel(path, sheet_name=sheet_1_name, encoding="cp932", header=None)
+        dfPre4 = pd.read_excel(path, sheet_name=sheet_4_name, encoding="cp932", header=None)
+
+        dfPre1 = insertOneRowCol(dfPre1)
+        dfPre4 = insertOneRowCol(dfPre4)
+
+        df1 = createMedicalHistoryDF(dfPre1,df1)
+        df2 = createContactPersonsDF(dfPre1,dfPre4,df2)
     
     extractFileNames = [s.replace(dir_+"/", '') for s in extractFilePaths]
     extractFileNames.sort()
@@ -39,21 +42,33 @@ def main(dir_):
     
     pathOutput = "./積極的疫学調査調査票抽出データ.xlsx"
     
-    with pd.ExcelWriter(pathOutput, engine="openpyxl", mode="w") as writer:
-        df1.to_excel(writer, sheet_name="既往歴")
-        df2.to_excel(writer, sheet_name="接触者リスト")
-        df3.to_excel(writer, sheet_name="使用したファイル")
+    with pd.ExcelWriter(pathOutput, engine="openpyxl", mode="w", datetime_format='yyyy/mm/dd') as writer:
+        df1.to_excel(writer, sheet_name="既往歴", index=False)
+        df2.to_excel(writer, sheet_name="接触者リスト", index=False)
+        df3.to_excel(writer, sheet_name="使用したファイル", index=False)
         
     print("積極的疫学調査調査票抽出データ.xlsxが作成されました。")
-    
-def createMedicalHistoryDF(wb,ws1,df):
+
+def insertOneRowCol(df_,emp ="empty"):
+    df_.index = df_.index + 1 
+    df_.loc[0] = np.nan
+    df_ = df_.sort_index()
+
+    cols = df_.columns
+    cols = [emp] + list(cols)
+    df_[emp] = np.nan 
+    df_ = df_[cols]
+    return(df_)
+
+
+def createMedicalHistoryDF(dfPre1,df):
 
     #患者情報
     patient_id = "患者ID"
     patient_name = "患者氏名"
 
-    patient_id_v = ws1.cell(row=4,column=38).value
-    patient_name_v = ws1.cell(row=19,column=9).value
+    patient_id_v = dfPre1.iloc[4,38]
+    patient_name_v = dfPre1.iloc[19,9]
 
     #元データの疾患名, 列位置
     preg ='妊娠'
@@ -170,16 +185,16 @@ def createMedicalHistoryDF(wb,ws1,df):
         canc
     ]
 
-    dic_1 = _utils.getRowIndexDict(ws1,col_1,mhcp)
+    dic_1 = getRowIndexDict(dfPre1,col_1,mhcp)
 
     yes_no_l = []
     for i in dic_1.values():
-        v1 = c_value(ws1,i,k1cp)
-        v2 = c_value(ws1,i,k2cp)
+        v1 = c_value(dfPre1,i,k1cp)
+        v2 = c_value(dfPre1,i,k2cp)
         if (v1 == mark) & (v2 == no_mark):
-            x = c_value(ws1,i,k1cp+1)
+            x = c_value(dfPre1,i,k1cp+1)
         elif (v1 == no_mark) & (v2 == mark):
-            x = c_value(ws1,i,k2cp+1)
+            x = c_value(dfPre1,i,k2cp+1)
         elif (v1 == no_mark) & (v2 == no_mark):
             x = "記入なし"
         else:
@@ -191,21 +206,21 @@ def createMedicalHistoryDF(wb,ws1,df):
         dic_1_yn[k]=v
 
     dic_2 = {
-        preg_week:[c_value(ws1,dic_1[preg],pwcp)],
-        smok_start_age:[c_value(ws1,dic_1[smok],ssacp)],
-        smok_per_day:[c_value(ws1,dic_1[smok],spdcp)],
+        preg_week:[c_value(dfPre1,dic_1[preg],pwcp)],
+        smok_start_age:[c_value(dfPre1,dic_1[smok],ssacp)],
+        smok_per_day:[c_value(dfPre1,dic_1[smok],spdcp)],
     }
 
-    s1=c_value(ws1,dic_1[rena_dis],dk1cp)
-    s2=c_value(ws1,dic_1[rena_dis],dk2cp)
+    s1=c_value(dfPre1,dic_1[rena_dis],dk1cp)
+    s2=c_value(dfPre1,dic_1[rena_dis],dk2cp)
 
-    if (dic_1_yn[rena_dis]==c_value(ws1,dic_1[rena_dis],k1cp+1)) & (s1==no_mark) & (s2==no_mark): 
+    if (dic_1_yn[rena_dis]==c_value(dfPre1,dic_1[rena_dis],k1cp+1)) & (s1==no_mark) & (s2==no_mark): 
         x = "腎疾患なし"
-    elif (dic_1_yn[rena_dis]==c_value(ws1,dic_1[rena_dis],k2cp+1)) & (s1==mark) & (s2==no_mark): 
-        x = c_value(ws1,dic_1[rena_dis],dk1cp+1)
-    elif (dic_1_yn[rena_dis]==c_value(ws1,dic_1[rena_dis],k2cp+1)) & (s1==no_mark) & (s2==mark): 
-        x = c_value(ws1,dic_1[rena_dis],dk2cp+1)
-    elif (dic_1_yn[rena_dis]==c_value(ws1,dic_1[rena_dis],k2cp+1)) & (s1==no_mark) & (s2==no_mark): 
+    elif (dic_1_yn[rena_dis]==c_value(dfPre1,dic_1[rena_dis],k2cp+1)) & (s1==mark) & (s2==no_mark): 
+        x = c_value(dfPre1,dic_1[rena_dis],dk1cp+1)
+    elif (dic_1_yn[rena_dis]==c_value(dfPre1,dic_1[rena_dis],k2cp+1)) & (s1==no_mark) & (s2==mark): 
+        x = c_value(dfPre1,dic_1[rena_dis],dk2cp+1)
+    elif (dic_1_yn[rena_dis]==c_value(dfPre1,dic_1[rena_dis],k2cp+1)) & (s1==no_mark) & (s2==no_mark): 
         x = "透析記入なし"
     else:
         x = "error"
@@ -215,17 +230,17 @@ def createMedicalHistoryDF(wb,ws1,df):
     }
 
     dic_4 = {
-        resp_dis_detail:[c_value(ws1,dic_1[resp_dis],mhdcp)],
-        live_dis_detail:[c_value(ws1,dic_1[live_dis],mhdcp)],
-        hear_dis_detail:[c_value(ws1,dic_1[hear_dis],mhdcp)],
-        nerv_dis_detail:[c_value(ws1,dic_1[nerv_dis],mhdcp)],
-        bloo_dis_detail:[c_value(ws1,dic_1[bloo_dis],mhdcp)],
-        immu_detail:[c_value(ws1,dic_1[immu],mhdcp)],
-        canc_detail:[c_value(ws1,dic_1[canc],mhdcp)],
+        resp_dis_detail:[c_value(dfPre1,dic_1[resp_dis],mhdcp)],
+        live_dis_detail:[c_value(dfPre1,dic_1[live_dis],mhdcp)],
+        hear_dis_detail:[c_value(dfPre1,dic_1[hear_dis],mhdcp)],
+        nerv_dis_detail:[c_value(dfPre1,dic_1[nerv_dis],mhdcp)],
+        bloo_dis_detail:[c_value(dfPre1,dic_1[bloo_dis],mhdcp)],
+        immu_detail:[c_value(dfPre1,dic_1[immu],mhdcp)],
+        canc_detail:[c_value(dfPre1,dic_1[canc],mhdcp)],
     }
 
     dic_5 = {
-        other_dis:[c_value(ws1,max(dic_1.values())+1,odcp)]
+        other_dis:[c_value(dfPre1,max(dic_1.values())+1,odcp)]
     }
 
     dic_merge = dic_1_yn
@@ -254,15 +269,15 @@ def createMedicalHistoryDF(wb,ws1,df):
     
     return(df)
 
-def createContactPersonsDF(wb,ws1,ws4,df):
+def createContactPersonsDF(dfPre1,dfPre4,df):
 
 
     #患者情報
     patient_id = "患者ID"
     patient_name = "患者氏名"
 
-    patient_id_v = ws1.cell(row=4,column=38).value
-    patient_name_v = ws1.cell(row=19,column=9).value
+    patient_id_v = dfPre1.iloc[4,38]
+    patient_name_v = dfPre1.iloc[19,9]
 
     #元データのカラム名、カラム位置、マーク文字、マークサーチ範囲
     ct_num="接触者"
@@ -329,12 +344,13 @@ def createContactPersonsDF(wb,ws1,ws4,df):
         other_out,
     ]
 
-    dic_1=_utils.getColIndexDict(ws4,col_1,cln)
+    dic_1=getColIndexDict(dfPre4,col_1,cln)
 
     name_l=[]
-    for i in range(cln+2,ws4.max_row-1):
-        x=ws4.cell(row=i, column=dic_1[name]).value
-        if x==None:
+    for i in range(cln+2,dfPre4.shape[0]-1):
+        x= c_value( dfPre4, i, dic_1[name])
+        
+        if x!=x:
             break
         name_l.append(x)
     col_len=len(name_l)
@@ -343,24 +359,24 @@ def createContactPersonsDF(wb,ws1,ws4,df):
     for k,v in dic_1.items():
         l = list()
         for i in range (cln+2,col_len+cln+2):
-            l.append(ws4.cell(row=i, column=v).value)
+            l.append(c_value( dfPre4,i ,v))
         x = {k:l}
         dic_l_1.update(x)
 
-    dic_2=_utils.getColIndexDict(ws4,col_2,cln)
+    dic_2=getColIndexDict(dfPre4,col_2,cln)
 
 
     dic_l_2 = {}
     for k,v in dic_2.items():
         l = list()
         for i in range (cln+2,col_len+cln+2):
-            v1 = ws4.cell(row=i, column=v).value
-            v2 = getItems_SeeSameRowItems(ws4,i,v+1,cvr,mark) or getItems_SeeSameRowItems(ws4,i,v+1,cvr,no_mark)
+            v1 = c_value( dfPre4,i, v)
+            v2 = getItems_SeeSameRowItems(dfPre4,i,v+1,cvr,mark) or getItems_SeeSameRowItems(dfPre4,i,v+1,cvr,no_mark)
             if (v1 == mark) & (v2 == no_mark):
-                x = ws4.cell(row=i, column=v+1).value
+                x = c_value( dfPre4,i, v+1)
             elif (v1 == no_mark) & (v2 == mark):
-                n = seeSameRowItems(ws4,i,v+1,cvr).index(mark)
-                x = ws4.cell(row=i, column=v+n+2).value
+                n = seeSameRowItems(dfPre4,i,v+1,cvr).index(mark)
+                x = c_value( dfPre4, i, v+n+2)
             elif (v1 == no_mark) & (v2 == no_mark):
                 x = "入力なし"
             else:
@@ -369,15 +385,18 @@ def createContactPersonsDF(wb,ws1,ws4,df):
         x = {k:l}
         dic_l_2.update(x)
 
-    dic_3 = _utils.getColIndexDict(ws4,col_3,cln)
+    dic_3 = getColIndexDict(dfPre4,col_3,cln)
 
     dic_l_3 = {}
     for k,v in dic_3.items():
         l = list()
         for i in range (cln+2,col_len+cln+2):
-            a = ws4.cell(row=i, column=v).value
-            b = ws4.cell(row=i, column=v+3).value
-            c = ws4.cell(row=i, column=v+6).value
+            a = c_value(dfPre4,i, v)
+            b = c_value(dfPre4,i, v+3)
+            c = c_value(dfPre4,i, v+6)
+            a = int(a)
+            b = int(b)
+            c = int(c)
 
             x = str(a)+"/"+str(b)+"/"+str(c)
             y = pd.to_datetime(x)
@@ -418,22 +437,52 @@ def createContactPersonsDF(wb,ws1,ws4,df):
 
     return(df)
 
-def seeSameRowItems(ws,row_n,start_col_n,cover_range):
+def seeSameRowItems(df_,row_n,start_col_n,cover_range):
     l = []
     for i in range(1,cover_range+1):
-        l.append((ws.cell(row=row_n, column=start_col_n+i-1)).value)
+        l.append( c_value(df_ ,row_n, start_col_n+i-1) )
     return l
 
-def getItems_SeeSameRowItems(ws,row_n,start_col_n,cover_range,item):
-    x = seeSameRowItems(ws,row_n,start_col_n,cover_range)
+def getItems_SeeSameRowItems(df_ ,row_n,start_col_n,cover_range,item):
+    x = seeSameRowItems(df_ ,row_n,start_col_n,cover_range)
     if (item in x):
         return item
     
 
+def c_value(df_,r,c):
+    return df_.iloc[r,c]
 
-def c_value(ws,r,c):
-    return ws.cell(row=r,column=c).value
+
+def getColIndex(df_,colName,colLocNum=2):
+    colIndex = False
+    for  i in range(1,df_.shape[1]):
+        if df_.iloc[colLocNum, i]== colName:
+            colIndex = i
+            return(colIndex)
+    raise Exception(f"{colName} の名前が見つかりませんでした。")
+
+
+
+def getColIndexDict(df_,colNames,colLocNum= 2 ) :
+    dic_ = {}
+    for c in colNames:
+        dic_[c] = getColIndex(df_,c,colLocNum )
+    return(dic_)
+
+def getRowIndex(df_, rowName, rowLocNum):
+    rowIndex = False
+    for i in range(1,df_.shape[0]):
+        if df_.iloc[i, rowLocNum] == rowName:
+            rowIndex = i
+            return(rowIndex)
+    raise Exception(f"{rowName} の名前が見つかりませんでした。")
+
+def getRowIndexDict(df_,rowNames,rowLocNum) :
+    dic_ = {}
+    for r in rowNames:
+        dic_[r] = getRowIndex(df_,r,rowLocNum)
+    return(dic_)
 
 if __name__ == "__main__":
-    dir_ = "../nCoV_survey_files"
+    dir_ = "../prj_nCoV_survey/nCoV_survey_files/"
     main(dir_)
