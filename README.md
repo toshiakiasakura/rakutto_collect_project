@@ -1,4 +1,10 @@
-# Rakutto Collect Project. 
+# rakutto collect project. 
+楽々集計セットのソースコード公開用のGitHubです。  
+同時に改善などもopenで募集しています。  
+HPは[こちら](http://publichealth.med.hokudai.ac.jp/covid19/covid-19-%E6%A5%BD%E3%80%85%E9%9B%86%E8%A8%88%E3%82%BB%E3%83%83%E3%83%88/)です。  
+
+## フォーマット、サンプルデータに関して。
+`dt_format`のデータがHPで公開しているものと同じです。
 
 ## 出来ているもの
 - 患者データの集計
