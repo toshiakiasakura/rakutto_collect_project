@@ -14,7 +14,7 @@ def main(dir_):
     allFilePaths = glob.glob(path2xlsx)
     extractFilePaths = [i for i in allFilePaths if '~$' not in i]
     openFilePaths = [i for i in allFilePaths if '~$' in i]
-    openFileNames = [s.replace(PATH+"/", '') for s in openFilePaths]
+    openFileNames = [s.replace(dir_+"/", '') for s in openFilePaths]
     
     if openFileNames != []:
         print("フォルダ内に一時ファイルが存在します。ファイルが開いたままである可能性があります。確認して下さい。")
@@ -32,7 +32,7 @@ def main(dir_):
         df1 = createMedicalHistoryDF(wb,ws1,df1)
         df2 = createContactPersonsDF(wb,ws1,ws4,df2)    
     
-    extractFileNames = [s.replace(PATH+"/", '') for s in extractFilePaths]
+    extractFileNames = [s.replace(dir_+"/", '') for s in extractFilePaths]
     extractFileNames.sort()
     dic_path = {"使用したファイル":extractFileNames}
     df3 = pd.DataFrame(dic_path)
