@@ -48,12 +48,12 @@ repOutput = {
 commentCols = ['居住地：備考','職業：備考','発症日：備考',
             '濃厚接触者の観察状況：備考','入院：備考','転院：備考']
 
-patientColNames = A4OutputCols +  [ "№", "性別", '年代',"居住地", "入院医療機関（現在）", 
+patientColNames =  [ "№", "性別", '年代',"居住地", "入院医療機関（現在）", 
         "入院病床（現在）", '入院日',"退院日" ,"保健所" ,"発生状況（公表）" ,
         '身体状況（現在の症状）',
         '居住地：備考','職業：備考','発症日：備考','濃厚接触者の観察状況：備考',
         '入院：備考','転院：備考','治療機器',
-        '陰性結果開始日','陰性結果確認日'] 
+        '陰性結果開始日','陰性結果確認日'] #+ A4OutputCols
 
 patientColNames = np.unique(patientColNames)
 
@@ -78,7 +78,7 @@ insertCols = ['検査機関\n（入力必須）', '検査機関内番号', '患�
               '検査種別' ]
 
 
-formattedHospital = dir_  +  "0407_病床リスト.xlsx"
-hospitalSheetName = "病床リスト" 
+#formattedHospital = dir_  +  "0407_病床リスト.xlsx"
+#hospitalSheetName = "病床リスト" 
 
 
