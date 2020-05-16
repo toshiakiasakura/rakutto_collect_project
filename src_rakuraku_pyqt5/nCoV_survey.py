@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import glob
 import sys
+import _utils
 
 
 
@@ -40,8 +41,8 @@ def main(dir_):
     dic_path = {"使用したファイル":extractFileNames}
     df3 = pd.DataFrame(dic_path)
     
-    pathOutput = "./積極的疫学調査調査票抽出データ.xlsx"
-    
+    dir_ = _utils.getOutputDir()
+    pathOutput = dir_ + "積極的疫学調査調査票抽出データ.xlsx"
     with pd.ExcelWriter(pathOutput, engine="openpyxl", mode="w", datetime_format='yyyy/mm/dd') as writer:
         df1.to_excel(writer, sheet_name="既往歴", index=False)
         df2.to_excel(writer, sheet_name="接触者リスト", index=False)
