@@ -69,12 +69,11 @@ def getErrorMsg(df):
 
 def tableProcessing(df,path):
     df = df.dropna(axis=0,how="all")
-    for c in [phc,statusReal,statusPub,outOrNot,physicalStatus]:
+    for c in [phc,statusPub,outOrNot,physicalStatus]:
         df[c] = df[c].replace(np.nan,'空白') 
     df["count"] =1 
 
     tablePub = getStatusTable(df,statusPub)
-    tableReal = getStatusTable(df,statusReal)
 
     tablePhysical = _utils.basicTable(df,phc,physicalStatus)
     tableHosp = getHospitalTable(df)
