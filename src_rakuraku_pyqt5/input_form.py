@@ -519,7 +519,7 @@ class Ui_scrollArea(QScrollArea, _utils.basicUtils):
             exp = "Yes を押すとこのページの変更が破棄されます。" 
 
         flag = self.checkDiffExist()
-        # reply = QMessageBox.Yes
+        reply = QMessageBox.Yes
         if flag :
             print(exp)
             reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp, 
