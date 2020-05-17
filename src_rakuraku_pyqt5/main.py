@@ -57,7 +57,7 @@ comboItemError = "未実装"
 #        comboItem15, comboItem16, comboItem17, 
 #        comboItemAll, comboItemError ] 
 # for external
-comboItems = [ comboItemPatientAll, comboItem10, comboItem16] 
+comboItems = [ comboItemPatientAll, comboItem10, comboItem16]
 
 comboExp1= '''【実行するプログラムの説明】
 < 検査データの集計 >
@@ -659,14 +659,12 @@ class App(QWidget):
 
     def runItem17(self):
         import input_form
-        
-        self.ex_list.append(
-                input_form.Ui_scrollArea(
-                    self.fileName, 
-                    pL.patientSheetName, 
-                    pL.patientPullName
-                    )
-                )
+
+        ui = input_form.Ui_scrollArea(self.fileName,
+                                      pL.patientSheetName,
+                                      pL.patientPullName)
+        ui.show()
+        self.ex_list.append(ui)
 
     def runItemAll(self):
         # read files 

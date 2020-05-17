@@ -29,8 +29,11 @@ postValue  = "変更後の値"
 
 
 
-class Ui_scrollArea(_utils.basicUtils):
+
+class Ui_scrollArea(QScrollArea, _utils.basicUtils):
     def __init__(self, path, shName1, shName2):
+        super(Ui_scrollArea, self).__init__()
+        super(QScrollArea, self).__init__()
         super().__init__()
         self.row = 3
         self.baseRow = 2
@@ -52,16 +55,14 @@ class Ui_scrollArea(_utils.basicUtils):
 
         self.index = 1
 
-        self.scrollArea = QScrollArea()
         self.readData()
-        self.initialize(self.scrollArea)
-        self.scrollArea.show()
+        self.initialize()
 
         self.ex_list = []
 
-    def initialize(self, scrollArea):
+    def initialize(self):
 
-        self.setupGUI(scrollArea)
+        self.setupGUI()
         self.readAllValuesFromSheet()
 
     def readData(self):
@@ -113,13 +114,13 @@ class Ui_scrollArea(_utils.basicUtils):
         self.diffDic = {rowValue:[], columnValue:[], self.baseColValue:[], 
                 columnItemName:[], preValue:[], postValue:[] }
 
-    def setupGUI(self,scrollArea):
+    def setupGUI(self):
 
-        scrollArea.setObjectName("scrollArea")
+        self.setObjectName("scrollArea")
         mainWidth = 800
         mainHeight = 600
-        scrollArea.resize(mainWidth, mainHeight)
-        scrollArea.setWidgetResizable(True)
+        self.resize(mainWidth, mainHeight)
+        self.setWidgetResizable(True)
 
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
@@ -133,10 +134,10 @@ class Ui_scrollArea(_utils.basicUtils):
         self.setupScrollMiddle()
         self.setupGridLayoutBottom()
         self.setupSize()
-        scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.retranslateUi(scrollArea)
+        self.setWidget(self.scrollAreaWidgetContents)
+        self.retranslateUi()
 
-        QtCore.QMetaObject.connectSlotsByName(scrollArea)
+        QtCore.QMetaObject.connectSlotsByName(self)
 
     def changeRowRelated(self):
         reply = self.checkDiffMessage()
@@ -468,9 +469,9 @@ class Ui_scrollArea(_utils.basicUtils):
 
 
 
-    def retranslateUi(self, scrollArea):
+    def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        scrollArea.setWindowTitle(_translate("scrollArea", "楽々インプット"))
+        self.setWindowTitle(_translate("scrollArea", "楽々インプット"))
         self.pushNewRow.setText(_translate("scrollArea", "新規追加"))
         self.pushSearch.setText(_translate("scrollArea", "検索"))
         self.pushWrite.setText(_translate("scrollArea", "変更を追加"))
@@ -789,9 +790,22 @@ class Ui_scrollArea(_utils.basicUtils):
         QApplication.instance().quit()
 
     def closeEvent(self, event):
-        # dose not work well.
-        self.preFinishProcess()
-        event.accept()
+        reply = self.preFinishProcess()
+        if reply == QMessageBox.No:
+            event.ignore()
+            return
+
+        if os.path.exists(self.path2Diff):
+            exp = "今までの差分は全てファイルに反映されません。\n本当によろしいですか？"
+
+            reply = QMessageBox.question(self.scrollAreaWidgetContents, self.questionTitle,exp, 
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No:
+                event.ignore()
+                return
+
+        # finally call QScrollArea's closeEvent
+        super(Ui_scrollArea, self).closeEvent(event)
 
     def preFinishProcess(self):
         print( inspect.currentframe().f_code.co_name) 
@@ -828,6 +842,7 @@ class Ui_scrollArea(_utils.basicUtils):
 
 def main(path, shName1, shName2):
     ui = Ui_scrollArea(path, shName1, shName2)
+    ui.show()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
