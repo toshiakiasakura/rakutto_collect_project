@@ -659,14 +659,12 @@ class App(QWidget):
 
     def runItem17(self):
         import input_form
-        
-        self.ex_list.append(
-                input_form.Ui_scrollArea(
-                    self.fileName, 
-                    pL.patientSheetName, 
-                    pL.patientPullName
-                    )
-                )
+
+        ui = input_form.Ui_scrollArea(self.fileName,
+                                      pL.patientSheetName,
+                                      pL.patientPullName)
+        ui.show()
+        self.ex_list.append(ui)
 
     def runItemAll(self):
         # read files 
