@@ -27,6 +27,7 @@ def main(dir_):
     df2 = pd.DataFrame()
     
     for path in extractFilePaths:
+        print(path)
         dfPre1 = pd.read_excel(path, sheet_name=sheet_1_name, encoding="cp932", header=None)
         dfPre4 = pd.read_excel(path, sheet_name=sheet_4_name, encoding="cp932", header=None)
 
@@ -395,14 +396,8 @@ def createContactPersonsDF(dfPre1,dfPre4,df):
             a = c_value(dfPre4,i, v)
             b = c_value(dfPre4,i, v+3)
             c = c_value(dfPre4,i, v+6)
-            a = int(a)
-            b = int(b)
-            c = int(c)
-
-            x = str(a)+"/"+str(b)+"/"+str(c)
-            y = pd.to_datetime(x)
-
-            l.append(y)
+            date = convertStr2Date(a,b,c)
+            l.append(date)
 
         x = {k:l}
         dic_l_3.update(x)
@@ -437,6 +432,34 @@ def createContactPersonsDF(dfPre1,dfPre4,df):
     df = pd.concat([df, df_patient])
 
     return(df)
+
+
+def convertStr2Date(y,m,d):
+    y = convert2Str(y)
+    m = convert2Str(m)
+    d = convert2Str(d) 
+    if y == None or m == None or d == None:
+        return(np.nan)
+
+    if "R" in y:
+        y = 2018 +  int(y[1:]) 
+        y = str(y)
+    if len(y) == 1 :
+        y = 2018 + int(y)
+        y = str(y)
+
+    date = f"{y}/{m}/{d}"
+    date = pd.to_datetime(date)
+    return(date)
+
+def convert2Str(v):
+    if isinstance(v, float):
+        if np.isnan(v):
+            return(None)
+        v = int(v)
+
+    v = str(v) 
+    return(v) 
 
 def seeSameRowItems(df_,row_n,start_col_n,cover_range):
     l = []
@@ -485,5 +508,5 @@ def getRowIndexDict(df_,rowNames,rowLocNum) :
     return(dic_)
 
 if __name__ == "__main__":
-    dir_ = "../prj_nCoV_survey/nCoV_survey_files/"
+    dir_ = "../dt_20200518/rakuraku_format/"
     main(dir_)

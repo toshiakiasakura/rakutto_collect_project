@@ -50,14 +50,14 @@ comboItemAll = "全実行"
 comboItemPatientAll = "全実行(患者データからのみ)"
 comboItemError = "未実装"
 
-#comboItems = [ comboItemPatientAll, comboItem13, comboItem12,
-#        comboItem11, comboItem9, comboItem10, 
-#        comboItem4, comboItem1, comboItem8 , comboItem2 ,
-#        comboItem5, comboItem6, comboItem14,
-#        comboItem15, comboItem16, comboItem17, 
-#        comboItemAll, comboItemError ] 
+comboItems = [ comboItemPatientAll, comboItem13, comboItem12,
+        comboItem11, comboItem9, comboItem10, 
+        comboItem4, comboItem1, comboItem8 , comboItem2 ,
+        comboItem5, comboItem6, comboItem14,
+        comboItem15, comboItem16, comboItem17, 
+        comboItemAll, comboItemError ] 
 # for external
-comboItems = [ comboItemPatientAll, comboItem10, comboItem16] 
+#comboItems = [ comboItemPatientAll, comboItem10, comboItem16] 
 
 comboExp1= '''【実行するプログラムの説明】
 < 検査データの集計 >
