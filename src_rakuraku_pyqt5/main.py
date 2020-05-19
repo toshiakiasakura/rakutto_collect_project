@@ -849,7 +849,7 @@ class App(QWidget):
             fileName = path.split("/")[-1]
             self.errorMsg += f"{fileName} には以下のカラムがありません。改行も区別します。\n"
             s = ",".join(miss) 
-            self.errorMsg +=  f"[{s}]"
+            self.errorMsg +=  f"[{s}]\n"
 
     def readFiles(self):
 
