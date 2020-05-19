@@ -45,6 +45,7 @@ comboItem14  = "患者データの日付集計-層別集計"
 comboItem15  = "入力規則の延長"
 comboItem16  = "積極的疫学調査調査票データ抜き出しプログラム" 
 comboItem17  = "患者データの入力フォーム" 
+comboItem18  = "患者データの差分出力"
 
 comboItemAll = "全実行"
 comboItemPatientAll = "全実行(患者データからのみ)"
@@ -55,6 +56,7 @@ comboItems = [ comboItemPatientAll, comboItem13, comboItem12,
         comboItem4, comboItem1, comboItem8 , comboItem2 ,
         comboItem5, comboItem6, comboItem14,
         comboItem15, comboItem16, comboItem17, 
+        comboItem18, 
         comboItemAll, comboItemError ] 
 # for external
 #comboItems = [ comboItemPatientAll, comboItem10, comboItem16] 
@@ -173,6 +175,13 @@ comboExp17 = '''【実行するプログラムの説明】
 初めて使う人は、入力フォームのヘルプを確認してください。
 '''
 
+comboExp18 = '''【実行するプログラムの説明】
+< 変換プログラム > 
+2つのファイルを比較して、
+差分を出力してください。　
+
+'''
+
 comboExpAll = f'''【実行するプログラムの説明】
 < 全実行 > 
 このプログラムでは以下の順番で処理が行われます。
@@ -284,6 +293,10 @@ class App(QWidget):
         self.Items[comboItem17] = {"comboExp": comboExp17,
                 "fileChoice": patientFileChocie,
                 "run":self.runItem17}
+
+        self.Items[comboItem18] = {"comboExp": comboExp18,
+                "fileChoice": self.fileChoiceItem18,
+                "run":self.runItem18}
 
         self.Items[comboItemAll] = {"comboExp": comboExpAll,
                 "fileChoice":self.fileChoiceItemAll,
@@ -444,6 +457,24 @@ class App(QWidget):
         text = f"< ディレクトリー名 > \n {self.fileName}"
         self.fileLbl.setText(text)
         self.fileFlag = True
+
+    def fileChoiceItem18(self):
+        exp1 = "古い 患者データ を選択してください。"
+        exp2 = "新しい 患者データ を選択してください。"
+
+        QMessageBox.question(self, self.questionTitle,exp1, QMessageBox.Yes)
+        self.fileName1 = self.openFileNameDialog()
+
+        QMessageBox.question(self, self.questionTitle, exp2, QMessageBox.Yes)
+        self.fileName2 = self.openFileNameDialog()
+
+        self.fileExtentionCheck(pattern="two")
+        
+        fN1 = self.fileName1.split("/")[-1] 
+        fN2 = self.fileName2.split("/")[-1]
+        text = f"< 古い 患者データ > \n {fN1}\n"
+        text += f"< 新しい 患者データ >\n {fN2}"
+        self.fileLbl.setText(text)
 
     def fileChoiceItemAll(self):
         exp1 = "患者データ を選択してください。"
@@ -666,6 +697,16 @@ class App(QWidget):
         ui.show()
         self.ex_list.append(ui)
 
+    def runItem18(self):
+        old = self.readDF(self.fileName1)
+        new = self.readDF(self.fileName2)
+
+        if self.errorMsg == "":
+            import excel_diff
+            excel_diff.main(old, new)
+            _utils.createErrorCheckFile(self.fileName1,program = comboItem18 )
+            _utils.createErrorCheckFile(self.fileName2,program = comboItem18 )
+
     def runItemAll(self):
         # read files 
         try:
@@ -744,6 +785,7 @@ class App(QWidget):
             if self.df.shape[0] == 0:
                 self.errorMsg += "データが入っていません。"
             self.addMissColumns(self.df, pL.patientColNames, path)
+            return(self.df)
             
         except:    
             self.errorMsg += f"{pL.patientSheetName} のシートがありません。\n"
