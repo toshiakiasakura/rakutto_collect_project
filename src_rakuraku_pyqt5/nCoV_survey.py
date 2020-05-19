@@ -34,8 +34,8 @@ def main(dir_):
         dfPre1 = insertOneRowCol(dfPre1)
         dfPre4 = insertOneRowCol(dfPre4)
 
-        df1 = createMedicalHistoryDF(dfPre1,df1)
-        df2 = createContactPersonsDF(dfPre1,dfPre4,df2)
+        df1 = createMedicalHistoryDF(dfPre1,df1, path)
+        df2 = createContactPersonsDF(dfPre1,dfPre4,df2, path)
     
     extractFileNames = [s.replace(dir_+"/", '') for s in extractFilePaths]
     extractFileNames.sort()
@@ -63,7 +63,7 @@ def insertOneRowCol(df_,emp ="empty"):
     return(df_)
 
 
-def createMedicalHistoryDF(dfPre1,df):
+def createMedicalHistoryDF(dfPre1,df, path):
 
     #患者情報
     patient_id = "患者ID"
@@ -267,11 +267,12 @@ def createMedicalHistoryDF(dfPre1,df):
 
     dic_patient.update(dic_all)
     df_patient = pd.DataFrame(dic_patient)
+    df_patient["path"] = path
     df = pd.concat([df, df_patient])
     
     return(df)
 
-def createContactPersonsDF(dfPre1,dfPre4,df):
+def createContactPersonsDF(dfPre1,dfPre4,df, path):
 
 
     #患者情報
@@ -429,6 +430,7 @@ def createContactPersonsDF(dfPre1,dfPre4,df):
 
     dic_patient.update(dic_all)
     df_patient = pd.DataFrame(dic_patient)
+    df_patient["path"] = path
     df = pd.concat([df, df_patient])
 
     return(df)
@@ -508,5 +510,5 @@ def getRowIndexDict(df_,rowNames,rowLocNum) :
     return(dic_)
 
 if __name__ == "__main__":
-    dir_ = "../dt_20200518/rakuraku_format/"
+    dir_ = "../dt_test/nCoV_survey_files/"
     main(dir_)
