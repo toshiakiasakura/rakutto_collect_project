@@ -690,7 +690,6 @@ class App(QWidget):
 
     def runItem17(self):
         import input_form
-
         ui = input_form.Ui_scrollArea(self.fileName,
                                       pL.patientSheetName,
                                       pL.patientPullName)
@@ -704,8 +703,6 @@ class App(QWidget):
         if self.errorMsg == "":
             import excel_diff
             excel_diff.main(old, new)
-            _utils.createErrorCheckFile(self.fileName1,program = comboItem18 )
-            _utils.createErrorCheckFile(self.fileName2,program = comboItem18 )
 
     def runItemAll(self):
         # read files 

@@ -133,7 +133,7 @@ def copyOriginal(path):
         shutil.copy2(path,copyPath)
 
 
-def createErrorCheckFile(path, text=None, dic_=None,program=None):
+def createErrorCheckFile(path, text=None, dic_=None,program=None,cp=True):
     '''output error check text, and copy the data to the directory. 
     '''
     dir_ = getOutputDir(create=False)
@@ -160,8 +160,9 @@ def createErrorCheckFile(path, text=None, dic_=None,program=None):
     with open(filePath, "a") as f :
         f.write(s) 
 
-    # copy file 
-    copyOriginal(path)
+    if cp:
+        # copy file 
+        copyOriginal(path)
 
 
 def dateTypeCheck(df_, col):
