@@ -47,11 +47,14 @@ def dataProcessing(df,path):
 
     inDate = "入院日"
     outDate = "退院日"
+    onset  = "発症日"
     df[inDate]  = _utils.convertDatetime(df,inDate) 
     df[outDate] = _utils.convertDatetime(df,outDate) 
+    df[onset]   = _utils.convertDatetime(df,onset ) 
 
     df[inDate] = pd.to_datetime(df[inDate].astype(str), format='%Y-%m-%d')
     df[outDate] = pd.to_datetime(df[outDate].astype(str), format='%Y-%m-%d')
+    df[onset] = pd.to_datetime(df[onset].astype(str), format='%Y-%m-%d')
 
     job2 = '職業２'
     jobCom = "職業：備考"
